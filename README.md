@@ -1,106 +1,105 @@
-🍳 Recipe Parser
-Recipe Parser is a web-based app that lets you extract, scale, and save recipes from websites and (in the future) Instagram reels and captions. It’s perfect for organizing your favorite recipes and turning them into structured, editable cookbooks with smart scaling and shopping list features.
+# 🍳 Recipe Parser
 
-✨ Features
-🌐 Parse recipes from website URLs
+**Recipe Parser** is a web-based app that lets you **extract, scale, and save recipes** from websites and (in the future) Instagram reels and captions. It’s perfect for organizing your favorite recipes and turning them into structured, editable cookbooks with smart scaling and shopping list features.
 
-📥 Save and view parsed recipes
+## ✨ Features
 
-🧮 Scale recipe quantities easily (e.g., double, half)
+- 🌐 Parse recipes from website URLs
+- 📥 Save and view parsed recipes
+- 🧮 Scale recipe quantities easily (e.g., double, half)
+- 📝 View ingredients and step-by-step instructions
+- 📚 Organize recipes into cookbooks (planned)
+- ✏️ Edit saved recipes (planned)
+- 🛒 Generate shopping lists from recipes (planned)
+- 🗃️ Server support using SQLite (included)
 
-📝 View ingredients and step-by-step instructions
+## 🚧 Known Bugs
 
-📚 Organize recipes into cookbooks (planned)
+- When changing recipe scale, **fractions aren't always updated correctly**
+- Comments in ingredients/instructions may appear **poorly formatted**
 
-✏️ Edit saved recipes (planned)
+---
 
-🛒 Generate shopping lists from recipes (planned)
+## 🛠️ How It Works
 
-📦 Local storage persistence for saved recipes
+### 🔍 Parsing Method
 
-🚧 Known Bugs
-When changing recipe scale, fractions aren't always updated correctly
-
-Comments in ingredients/instructions may appear poorly formatted
-
-🛠️ How It Works
-🔍 Parsing Method
 The app uses a layered extraction strategy to fetch and structure recipe data:
+1. **JSON-LD** (most reliable)
+2. **Microdata**
+3. **Fallback** using common HTML patterns
 
-JSON-LD (most reliable)
+Parsing is done client-side with help from a public CORS proxy, or server-side using `recipe-scraper`.
 
-Microdata
+---
 
-Fallback using common HTML patterns
+## 🚀 Getting Started
 
-Parsing is done client-side with help from a public CORS proxy for website access.
+### 🔧 Prerequisites
 
-🚀 Getting Started
-🔧 Prerequisites
-A modern browser (Chrome, Firefox, etc.)
+- Node.js (for the server)
+- Modern browser (for the frontend)
 
-No backend required for the basic version (runs fully in the browser)
+### ▶️ Running Locally
 
-▶️ Running Locally
-Clone or download the repo.
+#### Frontend
 
-Open index.html in your browser.
+1. Open `index.html` directly in your browser.
 
-Paste a URL to a recipe (e.g., from sites like meaningfuleats.com, allrecipes.com, etc.)
+#### Backend (optional)
 
-Click Parse Recipe.
+1. Run `npm install` to install dependencies:
+    ```bash
+    npm install express cors body-parser recipe-scraper sqlite3
+    ```
 
-View, scale, and save the recipe.
+2. Start the server:
+    ```bash
+    node server.js
+    ```
 
-📸 Screenshots
-You can add screenshots here using:
+3. The server runs at `http://localhost:3000`.
 
-md
-Copy
-Edit
-![Screenshot](images/screenshot.png)
-📦 Planned Features
-✅ Website recipe parsing
+---
 
-🔜 Instagram Reel & Caption parsing
+## 📁 Folder Structure
 
-🔜 Manual recipe editing
+```
+project-root/
+│
+├── index.html          # Frontend app
+├── server.js           # Node.js + Express + SQLite backend
+├── recipes.db          # SQLite database (created on first run)
+├── README.md           # This file
+```
 
-🔜 Cookbook grouping
+---
 
-🔜 Shopping list generation
+## 🔮 Planned Features
 
-🔜 Scale-aware fraction formatting
+- 🔜 Instagram Reel & Caption parsing
+- 🔜 Manual recipe editing
+- 🔜 Cookbook grouping
+- 🔜 Shopping list generation
+- 🔜 Scale-aware fraction formatting
+- 🔜 User login and cloud sync
 
-🔜 Optional backend for user accounts and syncing
+---
 
-💡 Tech Stack
-HTML / CSS / JS
+## 💡 Tech Stack
 
-LocalStorage for saving recipes
+- **Frontend**: HTML, CSS, JavaScript
+- **Backend**: Node.js, Express, SQLite
+- **Recipe Parsing**: `recipe-scraper` library + JSON-LD/Microdata fallback
 
-Public proxy (via https://api.codetabs.com) to bypass CORS
+---
 
-Structured data parsing (JSON-LD, microdata, fallback)
+## 📌 License
 
-🧠 Folder Structure
-bash
-Copy
-Edit
-├── index.html         # Main frontend app (self-contained)
-├── images/            # (optional) Folder for screenshots
-└── README.md          # You're here!
-🙋‍♀️ Contributing / Ideas?
-If you’d like to help with:
-
-Instagram parsing (reels/captions)
-
-Backend integration (Node.js or Firebase?)
-
-UX feedback or UI enhancements
-
-...feel free to open an issue or start a discussion!
-
-📌 License
 MIT — Feel free to use, adapt, and improve.
 
+---
+
+## 🙋‍♀️ Contributions Welcome
+
+Have ideas or want to help with parsing, scaling, or feature building? Open an issue or submit a PR!
