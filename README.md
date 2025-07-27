@@ -8,10 +8,16 @@
 - 📥 Save and view parsed recipes
 - 🧮 Scale recipe quantities easily (e.g., double, half)
 - 📝 View ingredients and step-by-step instructions
-- 📚 Organize recipes into cookbooks (planned)
-- ✏️ Edit saved recipes (planned)
-- 🛒 Generate shopping lists from recipes (planned)
 - 🗃️ Server support using SQLite (included)
+
+## 🔮 Planned Features
+
+- 🔜 Instagram Reel & Caption parsing
+- 🔜 Edit saved recipes
+- 🔜 Organize recipes into cookbooks
+- 🔜 Generate shopping lists from recipes
+- 🔜 Scale-aware fraction formatting
+- 🔜 User login and cloud sync
 
 ## 🚧 Known Bugs
 
@@ -72,17 +78,6 @@ project-root/
 ├── recipes.db          # SQLite database (created on first run)
 ├── README.md           # This file
 ```
-
----
-
-## 🔮 Planned Features
-
-- 🔜 Instagram Reel & Caption parsing
-- 🔜 Manual recipe editing
-- 🔜 Cookbook grouping
-- 🔜 Shopping list generation
-- 🔜 Scale-aware fraction formatting
-- 🔜 User login and cloud sync
 
 ---
 
