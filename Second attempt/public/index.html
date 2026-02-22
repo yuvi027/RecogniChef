@@ -1,293 +1,10 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recipe Parser MVP</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #ff6b6b, #ffa500);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
-        .main-content {
-            padding: 40px;
-        }
-
-        .input-section {
-            margin-bottom: 30px;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .url-input {
-            flex: 1;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .url-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102,126,234,0.3);
-        }
-
-        .btn-secondary {
-            background: #f8f9fa;
-            color: #6c757d;
-            border: 2px solid #e0e0e0;
-        }
-
-        .btn-secondary:hover {
-            background: #e9ecef;
-        }
-
-        .status {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-weight: 500;
-            display: none;
-        }
-
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .status.loading {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-
-        .recipe-display {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
-            margin-top: 20px;
-            display: none;
-        }
-
-        .recipe-title {
-            font-size: 1.8em;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        .recipe-meta {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-
-        .meta-item {
-            background: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-size: 0.9em;
-            color: #6c757d;
-        }
-
-        .recipe-section {
-            margin-bottom: 25px;
-        }
-
-        .section-title {
-            font-size: 1.2em;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-weight: 600;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 5px;
-        }
-
-        .ingredient-list, .instruction-list {
-            list-style: none;
-        }
-
-        .ingredient-list li {
-            background: white;
-            padding: 12px 15px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            border-left: 4px solid #ff6b6b;
-        }
-
-        .instruction-list li {
-            background: white;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-            position: relative;
-        }
-
-        .instruction-list li::before {
-            content: counter(step-counter);
-            counter-increment: step-counter;
-            position: absolute;
-            left: -20px;
-            top: 15px;
-            background: #667eea;
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-
-        .instruction-list {
-            counter-reset: step-counter;
-        }
-
-        .recipes-list {
-            margin-top: 30px;
-        }
-
-        .saved-recipe {
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .saved-recipe:hover {
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
-
-        .saved-recipe h3 {
-            color: #2c3e50;
-            margin-bottom: 8px;
-        }
-
-        .saved-recipe p {
-            color: #6c757d;
-            font-size: 0.9em;
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #6c757d;
-        }
-
-        .empty-state h3 {
-            margin-bottom: 10px;
-        }
-
-        .scale-controls {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .scale-input {
-            width: 80px;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            text-align: center;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
@@ -505,39 +222,39 @@
                 return recipeData;
             }
 
-            parseIngredient(ingredientText) {
-                // Normalize fractions
-                let normalized = ingredientText;
-                for (let [unicode, ascii] of Object.entries(this.fractionMap)) {
-                    normalized = normalized.replace(new RegExp(unicode, 'g'), ascii);
-                }
+            // parseIngredient(ingredientText) {
+            //     // Normalize fractions
+            //     let normalized = ingredientText;
+            //     for (let [unicode, ascii] of Object.entries(this.fractionMap)) {
+            //         normalized = normalized.replace(new RegExp(unicode, 'g'), ascii);
+            //     }
 
-                // Pattern to match quantity, unit, and ingredient
-                const pattern = /^(\d+(?:\s*\/\s*\d+)?(?:\.\d+)?)\s*([a-zA-Z]+)?\s+(.+)$/;
-                const match = normalized.trim().match(pattern);
+            //     // Pattern to match quantity, unit, and ingredient
+            //     const pattern = /^(\d+(?:\s*\/\s*\d+)?(?:\.\d+)?)\s*([a-zA-Z]+)?\s+(.+)$/;
+            //     const match = normalized.trim().match(pattern);
 
-                if (match) {
-                    const [, quantityStr, unit, ingredient] = match;
-                    const quantity = this.parseQuantity(quantityStr);
-                    const normalizedUnit = this.normalizeUnit(unit);
+            //     if (match) {
+            //         const [, quantityStr, unit, ingredient] = match;
+            //         const quantity = this.parseQuantity(quantityStr);
+            //         const normalizedUnit = this.normalizeUnit(unit);
 
-                    return {
-                        original: ingredientText,
-                        quantity: quantity,
-                        unit: normalizedUnit,
-                        ingredient: ingredient.trim(),
-                        parsed: true
-                    };
-                }
+            //         return {
+            //             original: ingredientText,
+            //             quantity: quantity,
+            //             unit: normalizedUnit,
+            //             ingredient: ingredient.trim(),
+            //             parsed: true
+            //         };
+            //     }
 
-                return {
-                    original: ingredientText,
-                    quantity: null,
-                    unit: null,
-                    ingredient: ingredientText.trim(),
-                    parsed: false
-                };
-            }
+            //     return {
+            //         original: ingredientText,
+            //         quantity: null,
+            //         unit: null,
+            //         ingredient: ingredientText.trim(),
+            //         parsed: false
+            //     };
+            // }
 
             parseQuantity(quantityStr) {
                 if (quantityStr.includes('/')) {
@@ -679,6 +396,617 @@
         let currentRecipe = null;
         let originalRecipe = null;
         const parser = new RecipeParser();
+
+        // Load saved recipes on startup
+        loadSavedRecipes();
+
+        function loadSavedRecipes() {
+            savedRecipes = JSON.parse(localStorage.getItem('savedRecipes') || '[]');
+            document.getElementById('recipeCount').textContent = savedRecipes.length;
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            if (type === 'loading') {
+                status.innerHTML = `<span class="loading-spinner"></span> ${message}`;
+            }
+            
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        async function parseRecipe() {
+            const url = document.getElementById('urlInput').value.trim();
+            
+            if (!url) {
+                showStatus('Please enter a valid URL', 'error');
+                return;
+            }
+
+            // Show loading state
+            showStatus('Parsing recipe from website...', 'loading');
+            document.getElementById('parseBtn').innerHTML = '<span class="loading-spinner"></span> Parsing...';
+            document.getElementById('recipeDisplay').style.display = 'none';
+
+            try {
+                const recipe = await parser.parseRecipeFromUrl(url);
+                
+                // Add metadata
+                recipe.url = url;
+                recipe.dateAdded = new Date().toISOString();
+                
+                // Set default values if missing
+                if (!recipe.prepTime) recipe.prepTime = 'Not specified';
+                if (!recipe.cookTime) recipe.cookTime = 'Not specified';
+                if (!recipe.servings) recipe.servings = 'Not specified';
+
+                currentRecipe = recipe;
+                originalRecipe = { ...recipe }; // Store original for scaling
+                displayRecipe(recipe);
+                showStatus('Recipe parsed successfully!', 'success');
+            } catch (error) {
+                showStatus(error.message || 'Failed to parse recipe. Please try another URL.', 'error');
+            } finally {
+                document.getElementById('parseBtn').textContent = 'Parse Recipe';
+            }
+        }
+
+        function displayRecipe(recipe) {
+            document.getElementById('recipeTitle').textContent = recipe.name || 'Untitled Recipe';
+            
+            // Meta information
+            const meta = document.getElementById('recipeMeta');
+            meta.innerHTML = `
+                <div class="meta-item">⏱️ Prep: ${recipe.prepTime || 'Not specified'}</div>
+                <div class="meta-item">🍳 Cook: ${recipe.cookTime || 'Not specified'}</div>
+                <div class="meta-item">🍽️ Serves: ${recipe.servings || 'Not specified'}</div>
+            `;
+
+            // Ingredients
+            const ingredientList = document.getElementById('ingredientList');
+            if (recipe.ingredients && recipe.ingredients.length) {
+                ingredientList.innerHTML = recipe.ingredients
+                    .map(ingredient => `<li>${ingredient}</li>`)
+                    .join('');
+            } else {
+                ingredientList.innerHTML = '<li>No ingredients found</li>';
+            }
+
+            // Instructions
+            const instructionList = document.getElementById('instructionList');
+            if (recipe.instructions && recipe.instructions.length) {
+                instructionList.innerHTML = recipe.instructions
+                    .map(instruction => `<li>${instruction}</li>`)
+                    .join('');
+            } else {
+                instructionList.innerHTML = '<li>No instructions found</li>';
+            }
+
+            document.getElementById('recipeDisplay').style.display = 'block';
+            document.getElementById('savedRecipesList').style.display = 'none';
+            document.getElementById('scaleInput').value = 1;
+        }
+
+        function scaleCurrentRecipe() {
+            if (!originalRecipe) return;
+            
+            const scaleFactor = parseFloat(document.getElementById('scaleInput').value);
+            if (isNaN(scaleFactor) || scaleFactor <= 0) {
+                showStatus('Please enter a valid scale factor', 'error');
+                return;
+            }
+
+            currentRecipe = parser.scaleRecipe(originalRecipe, scaleFactor);
+            displayRecipe(currentRecipe);
+            
+            if (scaleFactor !== 1) {
+                showStatus(`Recipe scaled by ${scaleFactor}x`, 'success');
+            }
+        }
+
+        function saveRecipe() {
+            if (!currentRecipe) return;
+
+            const exists = savedRecipes.some(recipe => recipe.url === currentRecipe.url);
+            if (exists) {
+                showStatus('Recipe already saved!', 'error');
+                return;
+            }
+            
+            savedRecipes.push({ ...currentRecipe });
+            localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
+            
+            // Update UI
+            document.getElementById('recipeCount').textContent = savedRecipes.length;
+            document.getElementById('saveBtn').textContent = 'Recipe Saved!';
+            
+            setTimeout(() => {
+                document.getElementById('saveBtn').textContent = 'Save Recipe';
+            }, 2000);
+            
+            showStatus('Recipe saved successfully!', 'success');
+        }
+
+        function showSavedRecipes() {
+            const container = document.getElementById('savedRecipesContent');
+            const listDiv = document.getElementById('savedRecipesList');
+            
+            if (savedRecipes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No saved recipes yet</h3>
+                        <p>Parse and save your first recipe to get started!</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = savedRecipes
+                    .map((recipe, index) => `
+                        <div class="saved-recipe" onclick="loadSavedRecipe(${index})">
+                            <h3>${recipe.name || 'Untitled Recipe'}</h3>
+                            <p>Saved on ${new Date(recipe.dateAdded).toLocaleDateString()}</p>
+                        </div>
+                    `)
+                    .join('');
+            }
+            
+            document.getElementById('recipeDisplay').style.display = 'none';
+            listDiv.style.display = 'block';
+        }
+
+        function loadSavedRecipe(index) {
+            const recipe = savedRecipes[index];
+            if (recipe) {
+                currentRecipe = { ...recipe };
+                originalRecipe = { ...recipe };
+                displayRecipe(recipe);
+            }
+        }
+
+        // Handle Enter key in URL input
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                parseRecipe();
+            }
+        });
+    </script>
+</body>
+</html> -->
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Parser MVP</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍳 Recipe Parser</h1>
+            <p>Extract and save recipes from any website</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <div class="input-group">
+                    <input type="url" 
+                           class="url-input" 
+                           id="urlInput" 
+                           placeholder="Enter recipe URL (e.g., https://meaningfuleats.com/...)">
+                    <button class="btn btn-primary" onclick="parseRecipe()">
+                        <span id="parseBtn">Parse Recipe</span>
+                    </button>
+                </div>
+                <button class="btn btn-secondary" onclick="showSavedRecipes()">
+                    View Saved Recipes (<span id="recipeCount">0</span>)
+                </button>
+            </div>
+
+            <div class="status" id="status"></div>
+
+            <div class="recipe-display" id="recipeDisplay">
+                <div class="scale-controls">
+                    <span>Scale recipe:</span>
+                    <input type="number" class="scale-input" id="scaleInput" value="1" min="0.1" max="10" step="0.1">
+                    <button class="btn btn-secondary" onclick="scaleCurrentRecipe()" style="padding: 8px 15px; font-size: 14px;">Apply</button>
+                    <span style="font-size: 0.9em; color: #666;">servings</span>
+                </div>
+
+                <div class="recipe-title" id="recipeTitle"></div>
+                <div class="recipe-meta" id="recipeMeta"></div>
+                
+                <div class="recipe-section">
+                    <div class="section-title">Ingredients</div>
+                    <ul class="ingredient-list" id="ingredientList"></ul>
+                </div>
+
+                <div class="recipe-section">
+                    <div class="section-title">Instructions</div>
+                    <ol class="instruction-list" id="instructionList"></ol>
+                </div>
+
+                <button class="btn btn-primary" onclick="saveRecipe()" id="saveBtn">
+                    Save Recipe
+                </button>
+            </div>
+
+            <div class="recipes-list" id="savedRecipesList" style="display: none;">
+                <div class="section-title">Saved Recipes</div>
+                <div id="savedRecipesContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/IngredientParser.js"></script>
+
+    <script>
+        // JavaScript Recipe Parser Class
+        class RecipeParser {
+            constructor() {
+                // this.units = {
+                //     'cup': ['cup', 'cups', 'c'],
+                //     'tablespoon': ['tablespoon', 'tablespoons', 'tbsp', 'tbs', 'T'],
+                //     'teaspoon': ['teaspoon', 'teaspoons', 'tsp', 't'],
+                //     'pound': ['pound', 'pounds', 'lb', 'lbs'],
+                //     'ounce': ['ounce', 'ounces', 'oz'],
+                //     'gram': ['gram', 'grams', 'g'],
+                //     'kilogram': ['kilogram', 'kilograms', 'kg'],
+                //     'liter': ['liter', 'liters', 'l'],
+                //     'milliliter': ['milliliter', 'milliliters', 'ml'],
+                //     'piece': ['piece', 'pieces', 'pc', 'pcs'],
+                //     'clove': ['clove', 'cloves'],
+                //     'slice': ['slice', 'slices'],
+                //     'pinch': ['pinch', 'pinches']
+                // };
+
+                // this.fractionMap = {
+                //     '½': '1/2', '¼': '1/4', '¾': '3/4', '⅓': '1/3', '⅔': '2/3',
+                //     '⅛': '1/8', '⅜': '3/8', '⅝': '5/8', '⅞': '7/8'
+                // };
+            }
+
+            async fetchPage(url) {
+                try {
+                    // Since we can't directly fetch due to CORS, we'll use a proxy service
+                    const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
+                    const response = await fetch(proxyUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    return parser.parseFromString(html, 'text/html');
+                } catch (error) {
+                    console.error('Error fetching page:', error);
+                    throw new Error('Unable to fetch recipe page. This might be due to CORS restrictions.');
+                }
+            }
+
+            extractJsonLd(doc) {
+                const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
+                
+                for (let script of scripts) {
+                    try {
+                        const data = JSON.parse(script.textContent);
+                        const recipeData = this.findRecipeInData(data);
+                        if (recipeData) {
+                            return recipeData;
+                        }
+                    } catch (e) {
+                        continue;
+                    }
+                }
+                return null;
+            }
+
+            findRecipeInData(data) {
+                if (Array.isArray(data)) {
+                    for (let item of data) {
+                        const result = this.findRecipeInData(item);
+                        if (result) return result;
+                    }
+                } else if (typeof data === 'object' && data !== null) {
+                    if (data['@type'] === 'Recipe') {
+                        return data;
+                    }
+                    for (let value of Object.values(data)) {
+                        const result = this.findRecipeInData(value);
+                        if (result) return result;
+                    }
+                }
+                return null;
+            }
+
+            extractMicrodata(doc) {
+                const recipeData = {};
+                const recipeElem = doc.querySelector('[itemtype*="schema.org/Recipe"]');
+                
+                if (!recipeElem) return recipeData;
+
+                const name = recipeElem.querySelector('[itemprop="name"]');
+                if (name) recipeData.name = name.textContent.trim();
+
+                const description = recipeElem.querySelector('[itemprop="description"]');
+                if (description) recipeData.description = description.textContent.trim();
+
+                const ingredients = recipeElem.querySelectorAll('[itemprop="recipeIngredient"]');
+                if (ingredients.length) {
+                    recipeData.recipeIngredient = Array.from(ingredients).map(ing => ing.textContent.trim());
+                }
+
+                const instructions = recipeElem.querySelectorAll('[itemprop="recipeInstructions"]');
+                if (instructions.length) {
+                    recipeData.recipeInstructions = Array.from(instructions).map(inst => ({
+                        text: inst.textContent.trim()
+                    }));
+                }
+
+                return recipeData;
+            }
+
+            extractFallback(doc) {
+                const recipeData = {};
+
+                // Try to find title
+                const titleSelectors = [
+                    'h1.recipe-title', 'h1.entry-title', '.recipe-header h1',
+                    'h1', '.recipe-title', '[class*="recipe"] h1'
+                ];
+
+                for (let selector of titleSelectors) {
+                    const title = doc.querySelector(selector);
+                    if (title) {
+                        recipeData.name = title.textContent.trim();
+                        break;
+                    }
+                }
+
+                // Try to find ingredients
+                const ingredientSelectors = [
+                    '.recipe-ingredients li', '.ingredients li', '[class*="ingredient"] li',
+                    '.recipe-ingredients p', '.ingredients p', '[class*="ingredient"] p'
+                ];
+
+                for (let selector of ingredientSelectors) {
+                    const ingredients = doc.querySelectorAll(selector);
+                    if (ingredients.length) {
+                        recipeData.recipeIngredient = Array.from(ingredients).map(ing => ing.textContent.trim());
+                        break;
+                    }
+                }
+
+                // Try to find instructions
+                const instructionSelectors = [
+                    '.recipe-instructions li', '.instructions li', '[class*="instruction"] li',
+                    '.recipe-instructions p', '.instructions p', '[class*="instruction"] p',
+                    '.recipe-directions li', '.directions li', '[class*="direction"] li'
+                ];
+
+                for (let selector of instructionSelectors) {
+                    const instructions = doc.querySelectorAll(selector);
+                    if (instructions.length) {
+                        recipeData.recipeInstructions = Array.from(instructions)
+                            .map(inst => ({ text: inst.textContent.trim() }))
+                            .filter(inst => inst.text.length > 10);
+                        break;
+                    }
+                }
+
+                return recipeData;
+            }
+
+            // parseIngredient(ingredientText) {
+            //     // Normalize fractions
+            //     let normalized = ingredientText;
+            //     for (let [unicode, ascii] of Object.entries(this.fractionMap)) {
+            //         normalized = normalized.replace(new RegExp(unicode, 'g'), ascii);
+            //     }
+
+            //     // Pattern to match quantity, unit, and ingredient
+            //     const pattern = /^(\d+(?:\s*\/\s*\d+)?(?:\.\d+)?)\s*([a-zA-Z]+)?\s+(.+)$/;
+            //     const match = normalized.trim().match(pattern);
+
+            //     if (match) {
+            //         const [, quantityStr, unit, ingredient] = match;
+            //         const quantity = this.parseQuantity(quantityStr);
+            //         const normalizedUnit = this.normalizeUnit(unit);
+
+            //         return {
+            //             original: ingredientText,
+            //             quantity: quantity,
+            //             unit: normalizedUnit,
+            //             ingredient: ingredient.trim(),
+            //             parsed: true
+            //         };
+            //     }
+
+            //     return {
+            //         original: ingredientText,
+            //         quantity: null,
+            //         unit: null,
+            //         ingredient: ingredientText.trim(),
+            //         parsed: false
+            //     };
+            // }
+
+            // parseQuantity(quantityStr) {
+            //     if (quantityStr.includes('/')) {
+            //         const [num, den] = quantityStr.split('/').map(s => parseFloat(s.trim()));
+            //         return num / den;
+            //     }
+            //     return parseFloat(quantityStr);
+            // }
+
+            // normalizeUnit(unit) {
+            //     if (!unit) return null;
+                
+            //     const unitLower = unit.toLowerCase().trim();
+            //     for (let [standard, variations] of Object.entries(this.units)) {
+            //         if (variations.includes(unitLower)) {
+            //             return standard;
+            //         }
+            //     }
+            //     return unitLower;
+            // }
+
+            scaleRecipe(recipeData, scaleFactor) {
+    const scaled = { ...recipeData };
+
+    if (scaled.ingredients) {
+        scaled.ingredients = scaled.ingredients.map(ingredientText => {
+            const parsed = ingredientParser.parseIngredient(ingredientText);
+
+            if (parsed.parsed && parsed.quantity != null) {
+                return ingredientParser.scaleIngredient(parsed, scaleFactor);
+            }
+
+            return ingredientText;
+        });
+    }
+
+    if (scaled.servings) {
+        const servingsNum = parseInt(scaled.servings);
+        if (!isNaN(servingsNum)) {
+            scaled.servings = Math.round(servingsNum * scaleFactor).toString();
+        }
+    }
+
+    return scaled;
+}
+
+            // scaleRecipe(recipeData, scaleFactor) {
+            //     const scaled = { ...recipeData };
+
+            //     if (scaled.ingredients) {
+            //         scaled.ingredients = scaled.ingredients.map(ingredient => {
+            //             const parsed = this.parseIngredient(ingredient);
+            //             if (parsed.parsed && parsed.quantity) {
+            //                 const newQuantity = parsed.quantity * scaleFactor;
+            //                 const formattedQuantity = this.formatQuantity(newQuantity);
+            //                 let scaledText = formattedQuantity;
+            //                 if (parsed.unit) scaledText += ` ${parsed.unit}`;
+            //                 scaledText += ` ${parsed.ingredient}`;
+            //                 return scaledText;
+            //             }
+            //             return ingredient;
+            //         });
+            //     }
+
+            //     if (scaled.servings) {
+            //         const servingsNum = parseInt(scaled.servings);
+            //         if (!isNaN(servingsNum)) {
+            //             scaled.servings = Math.round(servingsNum * scaleFactor).toString();
+            //         }
+            //     }
+
+            //     return scaled;
+            // }
+
+            // formatQuantity(quantity) {
+            //     // Convert decimals to fractions for common values
+            //     const fractions = {
+            //         0.125: '1/8', 0.25: '1/4', 0.333: '1/3', 0.375: '3/8',
+            //         0.5: '1/2', 0.625: '5/8', 0.667: '2/3', 0.75: '3/4', 0.875: '7/8'
+            //     };
+
+            //     const rounded = Math.round(quantity * 1000) / 1000;
+            //     for (let [decimal, fraction] of Object.entries(fractions)) {
+            //         if (Math.abs(rounded - decimal) < 0.01) {
+            //             return fraction;
+            //         }
+            //     }
+
+            //     if (quantity % 1 === 0) {
+            //         return quantity.toString();
+            //     }
+
+            //     return quantity.toFixed(2).replace(/\.?0+$/, '');
+            // }
+
+            cleanRecipeData(data) {
+                const cleaned = {};
+
+                if (data.name) cleaned.name = data.name.trim();
+                if (data.description) cleaned.description = data.description.trim();
+
+                if (data.recipeIngredient) {
+                    cleaned.ingredients = Array.isArray(data.recipeIngredient) 
+                        ? data.recipeIngredient.map(ing => ing.trim()).filter(ing => ing)
+                        : [data.recipeIngredient.trim()];
+                }
+
+                if (data.recipeInstructions) {
+                    cleaned.instructions = [];
+                    const instructions = Array.isArray(data.recipeInstructions) ? data.recipeInstructions : [data.recipeInstructions];
+                    
+                    for (let inst of instructions) {
+                        let text = typeof inst === 'object' ? inst.text : inst;
+                        if (text && text.trim()) {
+                            cleaned.instructions.push(text.trim());
+                        }
+                    }
+                }
+
+                // Additional metadata
+                if (data.prepTime) cleaned.prepTime = data.prepTime;
+                if (data.cookTime) cleaned.cookTime = data.cookTime;
+                if (data.totalTime) cleaned.totalTime = data.totalTime;
+                if (data.recipeYield) cleaned.servings = data.recipeYield.toString();
+
+                return cleaned;
+            }
+
+            async parseRecipeFromUrl(url) {
+                try {
+                    const doc = await this.fetchPage(url);
+                    
+                    // Try JSON-LD first
+                    let recipeData = this.extractJsonLd(doc);
+                    if (recipeData && recipeData.name) {
+                        console.log('Extracted recipe using JSON-LD');
+                        return this.cleanRecipeData(recipeData);
+                    }
+
+                    // Try microdata
+                    recipeData = this.extractMicrodata(doc);
+                    if (recipeData && recipeData.name) {
+                        console.log('Extracted recipe using microdata');
+                        return this.cleanRecipeData(recipeData);
+                    }
+
+                    // Fallback method
+                    recipeData = this.extractFallback(doc);
+                    if (recipeData && recipeData.name) {
+                        console.log('Extracted recipe using fallback method');
+                        return this.cleanRecipeData(recipeData);
+                    }
+
+                    throw new Error('Could not extract recipe data from this URL');
+                } catch (error) {
+                    console.error('Error parsing recipe:', error);
+                    throw error;
+                }
+            }
+        }
+
+        // Global variables
+        let savedRecipes = [];
+        let currentRecipe = null;
+        let originalRecipe = null;
+        const parser = new RecipeParser();
+        const ingredientParser = new IngredientParser();
 
         // Load saved recipes on startup
         loadSavedRecipes();
