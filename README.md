@@ -6,7 +6,7 @@
 
 - 🌐 Parse recipes from website URLs
 - 📥 Save and view parsed recipes
-- 🧮 Scale recipe quantities easily (e.g., double, half)
+- 🧮 Scale-aware fraction formatting
 - 📝 View ingredients and step-by-step instructions
 - 🗃️ Server support using SQLite (included)
 
@@ -16,7 +16,6 @@
 - 🔜 Edit saved recipes
 - 🔜 Organize recipes into cookbooks
 - 🔜 Generate shopping lists from recipes
-- 🔜 Scale-aware fraction formatting
 - 🔜 User login and cloud sync
 
 ## 🚧 Known Bugs
