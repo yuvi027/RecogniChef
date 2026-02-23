@@ -7,7 +7,6 @@
 - 🌐 Parse recipes from website URLs
 - 📥 Save and view parsed recipes
 - 🧮 Scale-aware fraction formatting
-- 📝 View ingredients and step-by-step instructions
 - 🗃️ Server support using SQLite (included)
 - ✏️ Can edit saved recipes
 - ❌ Can delete recipes
@@ -21,8 +20,8 @@
 
 ## 🚧 Known Bugs
 
-- When changing recipe scale, **fractions aren't always updated correctly**
 - Comments in ingredients/instructions may appear **poorly formatted**
+- If the instructions are separated, for exmaple, in cake there's instruction for the batter and for another layer, then for now ony the first part will be parsed.
 
 ---
 
