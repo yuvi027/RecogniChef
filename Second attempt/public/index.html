@@ -521,6 +521,7 @@
         function enableDragAndDrop(containerId) {
             const container = document.getElementById(containerId);
 
+            // Only editable-items are draggable
             container.querySelectorAll('.editable-item').forEach(item => {
                 item.draggable = true;
 
@@ -536,10 +537,14 @@
             container.addEventListener('dragover', e => {
                 e.preventDefault();
                 const dragging = container.querySelector('.dragging');
+
+                // Never allow dropping after the add button
                 const afterElement = getDragAfterElement(container, e.clientY);
 
-                if (afterElement == null) {
-                    container.appendChild(dragging);
+                if (!afterElement) {
+                    // Insert before the last editable item (so add button stays last)
+                    const editableItems = container.querySelectorAll('.editable-item');
+                    container.insertBefore(dragging, editableItems[editableItems.length - 1].nextSibling);
                 } else {
                     container.insertBefore(dragging, afterElement);
                 }
@@ -547,6 +552,7 @@
         }
 
         function getDragAfterElement(container, y) {
+            // Only consider editable-items, exclude add buttons
             const draggableElements = [...container.querySelectorAll('.editable-item:not(.dragging)')];
 
             return draggableElements.reduce((closest, child) => {
@@ -560,6 +566,7 @@
                 }
             }, { offset: Number.NEGATIVE_INFINITY }).element;
         }
+
         function saveEdits() {
             if (!currentRecipe) return;
 
