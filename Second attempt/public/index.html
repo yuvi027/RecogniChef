@@ -25,7 +25,10 @@
                     </button>
                 </div>
                 <button class="btn btn-secondary" onclick="showSavedRecipes()">
-                    View Saved Recipes (<span id="recipeCount">0</span>)
+                    View Cookbooks (<span id="recipeCount">0</span>)
+                </button>
+                <button class="btn btn-secondary" onclick="createFolder()">
+                    + Create Cookbook
                 </button>
             </div>
 
@@ -72,7 +75,7 @@
             </div>
 
             <div class="recipes-list" id="savedRecipesList" style="display: none;">
-                <div class="section-title">Saved Recipes</div>
+                <div class="section-title">Recipes</div>
                 <div id="savedRecipesContent"></div>
             </div>
         </div>
@@ -310,9 +313,12 @@
         }
 
         // Global variables
-        let savedRecipes = [];
+        let cookbooks = {
+            "All Recipes": []
+        };
         let currentRecipe = null;
         let originalRecipe = null;
+        let currentFolder = "All Recipes";
 
         // Parser
         const parser = new RecipeParser();
@@ -323,10 +329,25 @@
         let editingSavedIndex = null;
 
         // Load saved recipes on startup
-        loadSavedRecipes();
+        loadCookbooks();
+
+        function createFolder() {
+            const name = prompt("Enter cookbook name:");
+            if (!name) return;
+
+            if (cookbooks[name]) {
+                showStatus("Cookbook already exists!", "error");
+                return;
+            }
+
+            cookbooks[name] = [];
+            localStorage.setItem("cookbooks", JSON.stringify(cookbooks));
+
+            showStatus("Cookbook created!", "success");
+        }
 
         function loadSavedRecipe(index) {
-            const recipe = savedRecipes[index];
+            const recipe = cookbooks["All Recipes"][index];
             if (recipe) {
                 currentRecipe = { ...recipe };
                 originalRecipe = { ...recipe };
@@ -335,21 +356,23 @@
             }
         }
 
-        function loadSavedRecipes() {
-            const stored = localStorage.getItem('savedRecipes');
+        function loadCookbooks() {
+            const stored = localStorage.getItem("cookbooks");
 
             if (stored) {
                 try {
-                    savedRecipes = JSON.parse(stored);
+                    cookbooks = JSON.parse(stored);
                 } catch (e) {
-                    savedRecipes = [];
+                    cookbooks = { "All Recipes": [] };
                 }
-            } else {
-                savedRecipes = [];
             }
 
-            // Update counter immediately
-            document.getElementById('recipeCount').textContent = savedRecipes.length;
+            updateRecipeCount();
+        }
+
+        function updateRecipeCount() {
+            const count = cookbooks["All Recipes"].length;
+            document.getElementById("recipeCount").textContent = count;
         }
 
         function showStatus(message, type) {
@@ -377,10 +400,10 @@
                 return;
             }
 
-            const alreadySaved = savedRecipes.find(r => r.url === url);
+            const alreadySaved = cookbooks["All Recipes"].find(r => r.url === url);
             if (alreadySaved) {
                 showStatus("Recipe already saved. Loading saved version instead.", "error");
-                const index = savedRecipes.indexOf(alreadySaved);
+                const index = cookbooks["All Recipes"].indexOf(alreadySaved);
                 loadSavedRecipe(index);
                 return;
             }
@@ -638,8 +661,8 @@
 
             document.getElementById("saveOriginalBtn").onclick = function () {
 
-                updatedRecipe.dateAdded = savedRecipes[editingSavedIndex].dateAdded;
-                savedRecipes[editingSavedIndex] = updatedRecipe;
+                updatedRecipe.dateAdded = cookbooks["All Recipes"][editingSavedIndex].dateAdded;
+                cookbooks["All Recipes"][editingSavedIndex] = updatedRecipe;
 
                 finishSave(updatedRecipe, editingSavedIndex);
             };
@@ -647,9 +670,9 @@
             document.getElementById("saveCopyBtn").onclick = function () {
 
                 updatedRecipe.dateAdded = new Date().toISOString();
-                savedRecipes.push(updatedRecipe);
+                cookbooks["All Recipes"].push(updatedRecipe);
 
-                const newIndex = savedRecipes.length - 1;
+                const newIndex = cookbooks["All Recipes"].length - 1;
 
                 finishSave(updatedRecipe, newIndex);
             };
@@ -657,10 +680,10 @@
 
         function finishSave(recipe, index) {
 
-            localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
+            localStorage.setItem('cookbooks', JSON.stringify(cookbooks));
 
             // Update counter immediately
-            document.getElementById('recipeCount').textContent = savedRecipes.length;
+            document.getElementById('recipeCount').textContent = cookbooks["All Recipes"].length;
 
             editingSavedIndex = index;
             currentRecipe = { ...recipe };
@@ -756,11 +779,11 @@
             const confirmDelete = confirm("Are you sure you want to delete this recipe?");
             if (!confirmDelete) return;
 
-            savedRecipes.splice(editingSavedIndex, 1);
+            cookbooks["All Recipes"].splice(editingSavedIndex, 1);
 
-            localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
+            localStorage.setItem('cookbooks', JSON.stringify(cookbooks));
 
-            document.getElementById('recipeCount').textContent = savedRecipes.length;
+            updateRecipeCount();
 
             currentRecipe = null;
             originalRecipe = null;
@@ -778,11 +801,11 @@
             const confirmDelete = confirm("Delete this recipe?");
             if (!confirmDelete) return;
 
-            savedRecipes.splice(index, 1);
+            cookbooks["All Recipes"].splice(index, 1);
 
-            localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
+            localStorage.setItem('cookbooks', JSON.stringify(cookbooks));
 
-            document.getElementById('recipeCount').textContent = savedRecipes.length;
+            updateRecipeCount();
 
             showSavedRecipes();
 
@@ -809,66 +832,134 @@
         function saveRecipe() {
             if (!currentRecipe) return;
 
-            const exists = savedRecipes.some(recipe => recipe.url === currentRecipe.url);
+            const exists = cookbooks["All Recipes"]
+                .some(recipe => recipe.url === currentRecipe.url);
+
             if (exists) {
-                showStatus('Recipe already saved!', 'error');
+                showStatus("Recipe already saved!", "error");
                 return;
             }
 
-            savedRecipes.push({ ...currentRecipe });
-            localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
+            cookbooks["All Recipes"].push({ ...currentRecipe });
 
-            // Update UI
-            document.getElementById('recipeCount').textContent = savedRecipes.length;
-            document.getElementById('saveBtn').textContent = 'Recipe Saved!';
+            localStorage.setItem("cookbooks", JSON.stringify(cookbooks));
+            updateRecipeCount();
 
-            setTimeout(() => {
-                document.getElementById('saveBtn').textContent = 'Save Recipe';
-            }, 2000);
-
-            showStatus('Recipe saved successfully!', 'success');
+            showStatus("Recipe saved to All Recipes!", "success");
         }
 
+        function switchFolder(name) {
+            currentFolder = name;
+            showSavedRecipes();
+        }
+
+        function addToCookbook(index) {
+
+            const recipe = cookbooks["All Recipes"][index];
+
+            const folderName = prompt("Add to which cookbook?");
+
+            if (!folderName || !cookbooks[folderName]) {
+                showStatus("Cookbook not found!", "error");
+                return;
+            }
+
+            const exists = cookbooks[folderName]
+                .some(r => r.url === recipe.url);
+
+            if (exists) {
+                showStatus("Recipe already in that cookbook!", "error");
+                return;
+            }
+
+            cookbooks[folderName].push(recipe);
+
+            localStorage.setItem("cookbooks", JSON.stringify(cookbooks));
+
+            showStatus("Recipe added to cookbook!", "success");
+        }
+
+        function removeFromFolder(index) {
+
+    const confirmRemove = confirm("Remove from this cookbook?");
+    if (!confirmRemove) return;
+
+    cookbooks[currentFolder].splice(index, 1);
+
+    localStorage.setItem("cookbooks", JSON.stringify(cookbooks));
+
+    showSavedRecipes();
+    showStatus("Removed from cookbook!", "success");
+}
         function showSavedRecipes() {
 
             const container = document.getElementById('savedRecipesContent');
             const listDiv = document.getElementById('savedRecipesList');
 
-            if (savedRecipes.length === 0) {
+            let folderTabs = Object.keys(cookbooks)
+                .map(name => `
+            <button class="btn btn-secondary"
+                onclick="switchFolder('${name}')"
+                style="margin:5px;">
+                ${name}
+            </button>
+        `).join("");
+
+            const recipes = cookbooks[currentFolder] || [];
+
+            if (recipes.length === 0) {
                 container.innerHTML = `
+            ${folderTabs}
             <div class="empty-state">
-                <h3>No saved recipes yet</h3>
-                <p>Parse and save your first recipe to get started!</p>
+                <h3>No recipes in this cookbook</h3>
             </div>
         `;
             } else {
 
-                container.innerHTML = savedRecipes
-                    .map((recipe, index) => `
-                <div class="saved-recipe" 
-                     style="display:flex; justify-content:space-between; align-items:center;">
+                container.innerHTML = `
+            ${folderTabs}
+            ${recipes.map((recipe, index) => `
+    <div class="saved-recipe"
+         style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
 
-                    <div onclick="loadSavedRecipe(${index})" 
-                         style="cursor:pointer;">
-                        <h3 style="margin:0;">
-                            ${recipe.name || 'Untitled Recipe'}
-                        </h3>
-                    </div>
+        <div onclick="loadSavedRecipe(${index})"
+             style="cursor:pointer; flex:1;">
+            <h3 style="margin:0;">
+                ${recipe.name || 'Untitled Recipe'}
+            </h3>
+        </div>
 
-                    <button class="btn btn-secondary"
-                            style="font-size:12px;"
-                            onclick="deleteRecipeFromList(${index}); event.stopPropagation();">
-                        Delete
-                    </button>
+        <div style="display:flex; gap:8px;">
 
-                </div>
-            `)
-                    .join('');
+            ${currentFolder === "All Recipes" ? `
+                <button class="btn btn-secondary"
+                    style="font-size:12px;"
+                    onclick="addToCookbook(${index}); event.stopPropagation();">
+                    Add
+                </button>
+
+                <button class="btn btn-secondary"
+                    style="font-size:12px;"
+                    onclick="deleteRecipeFromList(${index}); event.stopPropagation();">
+                    Delete
+                </button>
+            ` : `
+                <button class="btn btn-secondary"
+                    style="font-size:12px;"
+                    onclick="removeFromFolder(${index}); event.stopPropagation();">
+                    Remove
+                </button>
+            `}
+        </div>
+    </div>
+`).join("")}
+        `;
             }
 
             document.getElementById('recipeDisplay').style.display = 'none';
             listDiv.style.display = 'block';
         }
+
         // Handle Enter key in URL input
         document.getElementById('urlInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
