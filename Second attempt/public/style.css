@@ -280,3 +280,32 @@
         border-radius: 5px;
         text-align: center;
     }
+
+
+    .editable-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.drag-handle {
+    cursor: grab;
+    user-select: none;
+}
+
+.delete-row-btn {
+    background: none;
+    border: none;
+    color: red;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.dragging {
+    opacity: 0.5;
+}
+
+.add-btn {
+    margin-top: 8px;
+}

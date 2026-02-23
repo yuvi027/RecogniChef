@@ -55,20 +55,20 @@
 
                 <div id="recipeActions" style="margin-top:20px; display:flex; gap:10px;">
 
-    <button class="btn btn-primary" onclick="saveRecipe()" id="saveBtn">
-        Save Recipe
-    </button>
+                    <button class="btn btn-primary" onclick="saveRecipe()" id="saveBtn">
+                        Save Recipe
+                    </button>
 
-    <button class="btn btn-secondary" onclick="enterEditMode()" id="editBtn">
-        Edit Recipe
-    </button>
+                    <button class="btn btn-secondary" onclick="enterEditMode()" id="editBtn">
+                        Edit Recipe
+                    </button>
 
-    <button class="btn btn-secondary" onclick="deleteCurrentRecipe()" 
-            id="deleteBtn" style="display:none;">
-        Delete Recipe
-    </button>
+                    <button class="btn btn-secondary" onclick="deleteCurrentRecipe()" id="deleteBtn"
+                        style="display:none;">
+                        Delete Recipe
+                    </button>
 
-</div>
+                </div>
             </div>
 
             <div class="recipes-list" id="savedRecipesList" style="display: none;">
@@ -415,19 +415,19 @@
         }
 
         function enterEditMode() {
-    if (!currentRecipe) return;
+            if (!currentRecipe) return;
 
-    isEditing = true;
+            isEditing = true;
 
-    // Make title editable
-    document.getElementById('recipeTitle').innerHTML =
-        `<input type="text" id="editTitle" 
+            // Make title editable
+            document.getElementById('recipeTitle').innerHTML =
+                `<input type="text" id="editTitle" 
                 value="${currentRecipe.name || ''}" 
                 style="width:100%; font-size:1.5em;">`;
 
-    // Make servings editable
-    const meta = document.getElementById('recipeMeta');
-    meta.innerHTML = `
+            // Make servings editable
+            const meta = document.getElementById('recipeMeta');
+            meta.innerHTML = `
         <div class="meta-item">
             🍽️ Serves:
             <input type="text" id="editServings" 
@@ -435,40 +435,40 @@
         </div>
     `;
 
-    // Ingredients editable
-    const ingredientList = document.getElementById('ingredientList');
-    ingredientList.innerHTML = (currentRecipe.ingredients || [])
-        .map((ing, i) =>
-            `<li>
-                <input type="text" 
-                       class="edit-ingredient" 
-                       value="${ing}" 
-                       data-index="${i}" 
-                       style="width:100%;">
-            </li>`
-        ).join('');
+            // Ingredients editable
+            const ingredientList = document.getElementById('ingredientList');
+            ingredientList.innerHTML = currentRecipe.ingredients
+                .map((ing, i) =>
+                    `<li class="editable-item">
+            <span class="drag-handle">☰</span>
+            <input type="text" class="edit-ingredient" value="${ing}" style="flex:1;">
+            <button class="delete-row-btn" onclick="removeIngredient(this)">✖</button>
+        </li>`
+                ).join('') +
+                `<button class="btn btn-secondary add-btn" onclick="addIngredient()">+ Add Ingredient</button>`;
 
-    // Instructions editable
-    const instructionList = document.getElementById('instructionList');
-    instructionList.innerHTML = (currentRecipe.instructions || [])
-        .map((step, i) =>
-            `<li>
-                <textarea class="edit-instruction" 
-                          data-index="${i}" 
-                          style="width:100%;">${step}</textarea>
-            </li>`
-        ).join('');
+            // Instructions editable
+            const instructionList = document.getElementById('instructionList');
+            instructionList.innerHTML = currentRecipe.instructions
+                .map((step, i) =>
+                    `<li class="editable-item">
+            <span class="drag-handle">☰</span>
+            <textarea class="edit-instruction" style="flex:1;">${step}</textarea>
+            <button class="delete-row-btn" onclick="removeInstruction(this)">✖</button>
+        </li>`
+                ).join('') +
+                `<button class="btn btn-secondary add-btn" onclick="addInstruction()">+ Add Step</button>`;
 
-    // 🔥 BUTTON CONTROL (no layout shift)
+            // 🔥 BUTTON CONTROL (no layout shift)
 
-    document.getElementById('saveBtn').style.display = 'none';
-    document.getElementById('editBtn').style.display = 'none';
-    document.getElementById('deleteBtn').style.display = 'none';
+            document.getElementById('saveBtn').style.display = 'none';
+            document.getElementById('editBtn').style.display = 'none';
+            document.getElementById('deleteBtn').style.display = 'none';
 
-    const actions = document.getElementById('recipeActions');
+            const actions = document.getElementById('recipeActions');
 
-    // Add Save Changes & Cancel inside the same button row
-    actions.insertAdjacentHTML('beforeend', `
+            // Add Save Changes & Cancel inside the same button row
+            actions.insertAdjacentHTML('beforeend', `
         <button class="btn btn-primary" 
                 id="saveChangesBtn" 
                 onclick="saveEdits()">
@@ -481,29 +481,118 @@
             Cancel
         </button>
     `);
-}
+
+            enableDragAndDrop('ingredientList');
+            enableDragAndDrop('instructionList');
+        }
+
+        function addIngredient() {
+            const list = document.getElementById('ingredientList');
+            const li = document.createElement('li');
+            li.className = "editable-item";
+            li.innerHTML = `
+        <span class="drag-handle">☰</span>
+        <input type="text" class="edit-ingredient" style="flex:1;">
+        <button class="delete-row-btn" onclick="removeIngredient(this)">✖</button>
+    `;
+            list.insertBefore(li, list.lastElementChild);
+        }
+
+        function removeIngredient(button) {
+            button.parentElement.remove();
+        }
+
+        function addInstruction() {
+            const list = document.getElementById('instructionList');
+            const li = document.createElement('li');
+            li.className = "editable-item";
+            li.innerHTML = `
+        <span class="drag-handle">☰</span>
+        <textarea class="edit-instruction" style="flex:1;"></textarea>
+        <button class="delete-row-btn" onclick="removeInstruction(this)">✖</button>
+    `;
+            list.insertBefore(li, list.lastElementChild);
+        }
+
+        function removeInstruction(button) {
+            button.parentElement.remove();
+        }
+
+        function enableDragAndDrop(containerId) {
+            const container = document.getElementById(containerId);
+
+            container.querySelectorAll('.editable-item').forEach(item => {
+                item.draggable = true;
+
+                item.addEventListener('dragstart', () => {
+                    item.classList.add('dragging');
+                });
+
+                item.addEventListener('dragend', () => {
+                    item.classList.remove('dragging');
+                });
+            });
+
+            container.addEventListener('dragover', e => {
+                e.preventDefault();
+                const dragging = container.querySelector('.dragging');
+                const afterElement = getDragAfterElement(container, e.clientY);
+
+                if (afterElement == null) {
+                    container.appendChild(dragging);
+                } else {
+                    container.insertBefore(dragging, afterElement);
+                }
+            });
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.editable-item:not(.dragging)')];
+
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
         function saveEdits() {
+            if (!currentRecipe) return;
+
+            // 🔹 Collect values IN THE ORDER THEY APPEAR IN THE DOM
+            const updatedIngredients = Array.from(
+                document.querySelectorAll('#ingredientList .edit-ingredient')
+            )
+                .map(input => input.value.trim())
+                .filter(value => value !== "");
+
+            const updatedInstructions = Array.from(
+                document.querySelectorAll('#instructionList .edit-instruction')
+            )
+                .map(textarea => textarea.value.trim())
+                .filter(value => value !== "");
+
             const updatedRecipe = {
                 ...currentRecipe,
-                name: document.getElementById('editTitle').value,
-                servings: document.getElementById('editServings').value,
-                ingredients: Array.from(document.querySelectorAll('.edit-ingredient'))
-                    .map(input => input.value.trim())
-                    .filter(v => v),
-                instructions: Array.from(document.querySelectorAll('.edit-instruction'))
-                    .map(textarea => textarea.value.trim())
-                    .filter(v => v)
+                name: document.getElementById('editTitle').value.trim(),
+                servings: document.getElementById('editServings').value.trim(),
+                ingredients: updatedIngredients,
+                instructions: updatedInstructions
             };
 
             isEditing = false;
 
-            // If editing a saved recipe → show save choice popup
+            // 🔹 If editing a saved recipe → ask whether to overwrite or copy
             if (editingSavedIndex !== null) {
                 showSaveChoicePopup(updatedRecipe);
                 return;
             }
 
-            // If editing unsaved recipe
+            // 🔹 If editing an unsaved recipe
             currentRecipe = updatedRecipe;
             originalRecipe = { ...updatedRecipe };
 
@@ -511,7 +600,6 @@
             displayRecipe(updatedRecipe);
             showStatus("Recipe updated successfully!", "success");
         }
-
         function showSaveChoicePopup(updatedRecipe) {
 
             const popup = document.createElement("div");
@@ -589,25 +677,25 @@
 
         function cleanupEditUI() {
 
-    const saveChangesBtn = document.getElementById("saveChangesBtn");
-    const cancelEditBtn = document.getElementById("cancelEditBtn");
+            const saveChangesBtn = document.getElementById("saveChangesBtn");
+            const cancelEditBtn = document.getElementById("cancelEditBtn");
 
-    if (saveChangesBtn) saveChangesBtn.remove();
-    if (cancelEditBtn) cancelEditBtn.remove();
+            if (saveChangesBtn) saveChangesBtn.remove();
+            if (cancelEditBtn) cancelEditBtn.remove();
 
-    document.getElementById('saveBtn').style.display = 'inline-block';
-    document.getElementById('editBtn').style.display = 'inline-block';
+            document.getElementById('saveBtn').style.display = 'inline-block';
+            document.getElementById('editBtn').style.display = 'inline-block';
 
-    if (editingSavedIndex !== null) {
-        document.getElementById('deleteBtn').style.display = 'inline-block';
-    } else {
-        document.getElementById('deleteBtn').style.display = 'none';
-    }
-}
+            if (editingSavedIndex !== null) {
+                document.getElementById('deleteBtn').style.display = 'inline-block';
+            } else {
+                document.getElementById('deleteBtn').style.display = 'none';
+            }
+        }
 
         function displayRecipe(recipe) {
 
-        
+
 
             document.getElementById('recipeTitle').textContent =
                 recipe.name || 'Untitled Recipe';
@@ -645,13 +733,13 @@
             document.getElementById('scaleInput').value = 1;
 
             // Show delete button only for saved recipes
-const deleteBtn = document.getElementById("deleteBtn");
+            const deleteBtn = document.getElementById("deleteBtn");
 
-if (editingSavedIndex !== null) {
-    deleteBtn.style.display = "inline-block";
-} else {
-    deleteBtn.style.display = "none";
-}
+            if (editingSavedIndex !== null) {
+                deleteBtn.style.display = "inline-block";
+            } else {
+                deleteBtn.style.display = "none";
+            }
         }
 
         function deleteCurrentRecipe() {
