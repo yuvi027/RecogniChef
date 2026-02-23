@@ -9,11 +9,12 @@
 - 🧮 Scale-aware fraction formatting
 - 📝 View ingredients and step-by-step instructions
 - 🗃️ Server support using SQLite (included)
+- ✏️ Can edit saved recipes
+- ❌ Can delete recipes
 
 ## 🔮 Planned Features
 
 - 🔜 Instagram Reel & Caption parsing
-- 🔜 Edit saved recipes
 - 🔜 Organize recipes into cookbooks
 - 🔜 Generate shopping lists from recipes
 - 🔜 User login and cloud sync
