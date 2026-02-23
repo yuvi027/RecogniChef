@@ -1,610 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recipe Parser MVP</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🍳 Recipe Parser</h1>
-            <p>Extract and save recipes from any website</p>
-        </div>
-
-        <div class="main-content">
-            <div class="input-section">
-                <div class="input-group">
-                    <input type="url" class="url-input" id="urlInput"
-                        placeholder="Enter recipe URL (e.g., https://meaningfuleats.com/...)">
-                    <button class="btn btn-primary" onclick="parseRecipe()">
-                        <span id="parseBtn">Parse Recipe</span>
-                    </button>
-                </div>
-                <button class="btn btn-secondary" onclick="showSavedRecipes()">
-                    View Saved Recipes (<span id="recipeCount">0</span>)
-                </button>
-            </div>
-
-            <div class="status" id="status"></div>
-
-            <div class="recipe-display" id="recipeDisplay">
-                <div class="scale-controls">
-                    <span>Scale recipe:</span>
-                    <input type="number" class="scale-input" id="scaleInput" value="1" min="0.1" max="10" step="0.1">
-                    <button class="btn btn-secondary" onclick="scaleCurrentRecipe()"
-                        style="padding: 8px 15px; font-size: 14px;">Apply</button>
-                    <span style="font-size: 0.9em; color: #666;">servings</span>
-                </div>
-
-                <div class="recipe-title" id="recipeTitle"></div>
-                <div class="recipe-meta" id="recipeMeta"></div>
-
-                <div class="recipe-section">
-                    <div class="section-title">Ingredients</div>
-                    <ul class="ingredient-list" id="ingredientList"></ul>
-                </div>
-
-                <div class="recipe-section">
-                    <div class="section-title">Instructions</div>
-                    <ol class="instruction-list" id="instructionList"></ol>
-                </div>
-
-                <div class="recipe-actions">
-                    <button class="btn btn-primary" id="saveBtn" onclick="saveRecipe()">Save Recipe</button>
-                    <button class="btn btn-secondary" id="editBtn" onclick="enableEditing()" style="display:none;">Edit
-                        Recipe</button>
-                    <button class="btn btn-secondary" id="updateBtn" onclick="updateRecipe()" style="display:none;">Save
-                        Changes</button>
-                </div>
-            </div>
-
-            <div class="recipes-list" id="savedRecipesList" style="display: none;">
-                <div class="section-title">Saved Recipes</div>
-                <div id="savedRecipesContent"></div>
-            </div>
-        </div>
-    </div>
-
-    <script src="js/IngredientParser.js"></script>
-
-    <script>
-        // JavaScript Recipe Parser Class
-        class RecipeParser {
-            constructor() {
-            }
-
-            async fetchPage(url) {
-                try {
-                    // Since we can't directly fetch due to CORS, we'll use a proxy service
-                    const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
-                    const response = await fetch(proxyUrl);
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const html = await response.text();
-                    const parser = new DOMParser();
-                    return parser.parseFromString(html, 'text/html');
-                } catch (error) {
-                    console.error('Error fetching page:', error);
-                    throw new Error('Unable to fetch recipe page. This might be due to CORS restrictions.');
-                }
-            }
-
-            extractJsonLd(doc) {
-                const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
-
-                for (let script of scripts) {
-                    try {
-                        const data = JSON.parse(script.textContent);
-                        const recipeData = this.findRecipeInData(data);
-                        if (recipeData) {
-                            return recipeData;
-                        }
-                    } catch (e) {
-                        continue;
-                    }
-                }
-                return null;
-            }
-
-            findRecipeInData(data) {
-                if (Array.isArray(data)) {
-                    for (let item of data) {
-                        const result = this.findRecipeInData(item);
-                        if (result) return result;
-                    }
-                } else if (typeof data === 'object' && data !== null) {
-                    if (data['@type'] === 'Recipe') {
-                        return data;
-                    }
-                    for (let value of Object.values(data)) {
-                        const result = this.findRecipeInData(value);
-                        if (result) return result;
-                    }
-                }
-                return null;
-            }
-
-            extractMicrodata(doc) {
-                const recipeData = {};
-                const recipeElem = doc.querySelector('[itemtype*="schema.org/Recipe"]');
-
-                if (!recipeElem) return recipeData;
-
-                const name = recipeElem.querySelector('[itemprop="name"]');
-                if (name) recipeData.name = name.textContent.trim();
-
-                const description = recipeElem.querySelector('[itemprop="description"]');
-                if (description) recipeData.description = description.textContent.trim();
-
-                const ingredients = recipeElem.querySelectorAll('[itemprop="recipeIngredient"]');
-                if (ingredients.length) {
-                    recipeData.recipeIngredient = Array.from(ingredients).map(ing => ing.textContent.trim());
-                }
-
-                const instructions = recipeElem.querySelectorAll('[itemprop="recipeInstructions"]');
-                if (instructions.length) {
-                    recipeData.recipeInstructions = Array.from(instructions).map(inst => ({
-                        text: inst.textContent.trim()
-                    }));
-                }
-
-                return recipeData;
-            }
-
-            extractFallback(doc) {
-                const recipeData = {};
-
-                // Try to find title
-                const titleSelectors = [
-                    'h1.recipe-title', 'h1.entry-title', '.recipe-header h1',
-                    'h1', '.recipe-title', '[class*="recipe"] h1'
-                ];
-
-                for (let selector of titleSelectors) {
-                    const title = doc.querySelector(selector);
-                    if (title) {
-                        recipeData.name = title.textContent.trim();
-                        break;
-                    }
-                }
-
-                // Try to find ingredients
-                const ingredientSelectors = [
-                    '.recipe-ingredients li', '.ingredients li', '[class*="ingredient"] li',
-                    '.recipe-ingredients p', '.ingredients p', '[class*="ingredient"] p'
-                ];
-
-                for (let selector of ingredientSelectors) {
-                    const ingredients = doc.querySelectorAll(selector);
-                    if (ingredients.length) {
-                        recipeData.recipeIngredient = Array.from(ingredients).map(ing => ing.textContent.trim());
-                        break;
-                    }
-                }
-
-                // Try to find instructions
-                const instructionSelectors = [
-                    '.recipe-instructions li', '.instructions li', '[class*="instruction"] li',
-                    '.recipe-instructions p', '.instructions p', '[class*="instruction"] p',
-                    '.recipe-directions li', '.directions li', '[class*="direction"] li'
-                ];
-
-                for (let selector of instructionSelectors) {
-                    const instructions = doc.querySelectorAll(selector);
-                    if (instructions.length) {
-                        recipeData.recipeInstructions = Array.from(instructions)
-                            .map(inst => ({ text: inst.textContent.trim() }))
-                            .filter(inst => inst.text.length > 10);
-                        break;
-                    }
-                }
-
-                return recipeData;
-            }
-
-            scaleRecipe(recipeData, scaleFactor) {
-                const scaled = { ...recipeData };
-
-                if (scaled.ingredients) {
-                    scaled.ingredients = scaled.ingredients.map(ingredientText => {
-                        const parsed = ingredientParser.parseIngredient(ingredientText);
-
-                        if (parsed.parsed && parsed.quantity != null) {
-                            return ingredientParser.scaleIngredient(parsed, scaleFactor);
-                        }
-
-                        return ingredientText;
-                    });
-                }
-
-                if (scaled.servings) {
-                    const servingsNum = parseInt(scaled.servings);
-                    if (!isNaN(servingsNum)) {
-                        scaled.servings = Math.round(servingsNum * scaleFactor).toString();
-                    }
-                }
-
-                return scaled;
-            }
-
-            cleanRecipeData(data) {
-                const cleaned = {};
-
-                if (data.name) cleaned.name = data.name.trim();
-                if (data.description) cleaned.description = data.description.trim();
-
-                if (data.recipeIngredient) {
-                    cleaned.ingredients = Array.isArray(data.recipeIngredient)
-                        ? data.recipeIngredient.map(ing => ing.trim()).filter(ing => ing)
-                        : [data.recipeIngredient.trim()];
-                }
-
-                if (data.recipeInstructions) {
-                    cleaned.instructions = [];
-                    const instructions = Array.isArray(data.recipeInstructions) ? data.recipeInstructions : [data.recipeInstructions];
-
-                    for (let inst of instructions) {
-                        let text = typeof inst === 'object' ? inst.text : inst;
-                        if (text && text.trim()) {
-                            cleaned.instructions.push(text.trim());
-                        }
-                    }
-                }
-
-                // Additional metadata
-                if (data.prepTime) cleaned.prepTime = data.prepTime;
-                if (data.cookTime) cleaned.cookTime = data.cookTime;
-                if (data.totalTime) cleaned.totalTime = data.totalTime;
-                if (data.recipeYield) cleaned.servings = data.recipeYield.toString();
-
-                return cleaned;
-            }
-
-            async parseRecipeFromUrl(url) {
-                try {
-                    const doc = await this.fetchPage(url);
-
-                    // Try JSON-LD first
-                    let recipeData = this.extractJsonLd(doc);
-                    if (recipeData && recipeData.name) {
-                        console.log('Extracted recipe using JSON-LD');
-                        return this.cleanRecipeData(recipeData);
-                    }
-
-                    // Try microdata
-                    recipeData = this.extractMicrodata(doc);
-                    if (recipeData && recipeData.name) {
-                        console.log('Extracted recipe using microdata');
-                        return this.cleanRecipeData(recipeData);
-                    }
-
-                    // Fallback method
-                    recipeData = this.extractFallback(doc);
-                    if (recipeData && recipeData.name) {
-                        console.log('Extracted recipe using fallback method');
-                        return this.cleanRecipeData(recipeData);
-                    }
-
-                    throw new Error('Could not extract recipe data from this URL');
-                } catch (error) {
-                    console.error('Error parsing recipe:', error);
-                    throw error;
-                }
-            }
-        }
-
-        // Global variables
-        let savedRecipes = [];
-        let currentRecipe = null;
-        let originalRecipe = null;
-        let currentSavedIndex = null;
-
-        // Parser
-        const parser = new RecipeParser();
-        const ingredientParser = new IngredientParser();
-
-        // Load saved recipes on startup
-        loadSavedRecipes();
-
-        function enableEditing() {
-            if (!currentRecipe) return;
-
-            // Make ingredients editable
-            const ingredientList = document.getElementById('ingredientList');
-            ingredientList.querySelectorAll('li').forEach((li, i) => {
-                li.setAttribute('contenteditable', 'true');
-                li.style.border = '1px dashed #ccc';
-                li.style.padding = '2px 4px';
-                li.style.marginBottom = '2px';
-            });
-
-            // Make instructions editable
-            const instructionList = document.getElementById('instructionList');
-            instructionList.querySelectorAll('li').forEach((li, i) => {
-                li.setAttribute('contenteditable', 'true');
-                li.style.border = '1px dashed #ccc';
-                li.style.padding = '2px 4px';
-                li.style.marginBottom = '2px';
-            });
-
-            // Show save changes button
-            document.getElementById('updateBtn').style.display = 'inline-block';
-            document.getElementById('editBtn').style.display = 'none';
-        }
-
-        function updateRecipe() {
-            if (!currentRecipe) return;
-
-            // Read back the edited values
-            const ingredientList = document.getElementById('ingredientList');
-            currentRecipe.ingredients = Array.from(ingredientList.querySelectorAll('li')).map(li => li.textContent.trim());
-
-            const instructionList = document.getElementById('instructionList');
-            currentRecipe.instructions = Array.from(instructionList.querySelectorAll('li')).map(li => li.textContent.trim());
-
-            if (currentSavedIndex !== null) {
-                // Editing an existing recipe
-                const replace = confirm("Replace original recipe? Click Cancel to save as a new recipe.");
-                if (replace) {
-                    savedRecipes[currentSavedIndex] = { ...currentRecipe };
-                    showStatus('Recipe updated successfully!', 'success');
-                } else {
-                    savedRecipes.push({ ...currentRecipe });
-                    currentSavedIndex = savedRecipes.length - 1;
-                    showStatus('Recipe saved as a new copy!', 'success');
-                }
-            } else {
-                // Recipe was never saved before, just save it
-                savedRecipes.push({ ...currentRecipe });
-                currentSavedIndex = savedRecipes.length - 1;
-                showStatus('Recipe saved successfully!', 'success');
-            }
-
-            localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
-            document.getElementById('recipeCount').textContent = savedRecipes.length;
-
-            // Reset buttons
-            document.getElementById('editBtn').style.display = 'inline-block';
-            document.getElementById('updateBtn').style.display = 'none';
-
-            // Remove editing styles
-            const allLi = document.querySelectorAll('#ingredientList li, #instructionList li');
-            allLi.forEach(li => {
-                li.removeAttribute('contenteditable');
-                li.style.border = '';
-                li.style.padding = '';
-                li.style.marginBottom = '';
-            });
-        }
-
-        function loadSavedRecipes() {
-            savedRecipes = JSON.parse(localStorage.getItem('savedRecipes') || '[]');
-            document.getElementById('recipeCount').textContent = savedRecipes.length;
-        }
-
-        function showStatus(message, type) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = `status ${type}`;
-            status.style.display = 'block';
-
-            if (type === 'loading') {
-                status.innerHTML = `<span class="loading-spinner"></span> ${message}`;
-            }
-
-            if (type !== 'loading') {
-                setTimeout(() => {
-                    status.style.display = 'none';
-                }, 3000);
-            }
-        }
-
-        async function parseRecipe() {
-            const url = document.getElementById('urlInput').value.trim();
-
-            if (!url) {
-                showStatus('Please enter a valid URL', 'error');
-                return;
-            }
-
-            // Show loading state
-            showStatus('Parsing recipe from website...', 'loading');
-            document.getElementById('parseBtn').innerHTML = '<span class="loading-spinner"></span> Parsing...';
-            document.getElementById('recipeDisplay').style.display = 'none';
-
-            try {
-                const recipe = await parser.parseRecipeFromUrl(url);
-
-                // Add metadata
-                recipe.url = url;
-                recipe.dateAdded = new Date().toISOString();
-
-                // Set default values if missing
-                if (!recipe.prepTime) recipe.prepTime = 'Not specified';
-                if (!recipe.cookTime) recipe.cookTime = 'Not specified';
-                if (!recipe.servings) recipe.servings = 'Not specified';
-
-                currentRecipe = recipe;
-                originalRecipe = { ...recipe }; // Store original for scaling
-                // currentSavedIndex = null;
-                // Check if recipe with this URL already exists
-                const existingIndex = savedRecipes.findIndex(r => r.url === recipe.url);
-                if (existingIndex !== -1) {
-                    // Show update button instead of save
-                    currentSavedIndex = existingIndex;
-                    document.getElementById('saveBtn').style.display = 'inline-block';
-                    document.getElementById('editBtn').style.display = 'inline-block';
-                    document.getElementById('updateBtn').style.display = 'none';
-                } else {
-                    // New recipe
-                    currentSavedIndex = null;
-                    document.getElementById('saveBtn').style.display = 'inline-block';
-                    document.getElementById('editBtn').style.display = 'inline-block';
-                    document.getElementById('updateBtn').style.display = 'none';
-                }
-                displayRecipe(recipe);
-                showStatus('Recipe parsed successfully!', 'success');
-            } catch (error) {
-                showStatus(error.message || 'Failed to parse recipe. Please try another URL.', 'error');
-            } finally {
-                document.getElementById('parseBtn').textContent = 'Parse Recipe';
-            }
-        }
-
-        function displayRecipe(recipe) {
-            document.getElementById('recipeTitle').textContent = recipe.name || 'Untitled Recipe';
-
-            // Meta information
-            const meta = document.getElementById('recipeMeta');
-            meta.innerHTML = `
-                <div class="meta-item">⏱️ Prep: ${recipe.prepTime || 'Not specified'}</div>
-                <div class="meta-item">🍳 Cook: ${recipe.cookTime || 'Not specified'}</div>
-                <div class="meta-item">🍽️ Serves: ${recipe.servings || 'Not specified'}</div>
-            `;
-
-            // Ingredients
-            const ingredientList = document.getElementById('ingredientList');
-            if (recipe.ingredients && recipe.ingredients.length) {
-                ingredientList.innerHTML = recipe.ingredients
-                    .map(ingredient => `<li>${ingredient}</li>`)
-                    .join('');
-            } else {
-                ingredientList.innerHTML = '<li>No ingredients found</li>';
-            }
-
-            // Instructions
-            const instructionList = document.getElementById('instructionList');
-            if (recipe.instructions && recipe.instructions.length) {
-                instructionList.innerHTML = recipe.instructions
-                    .map(instruction => `<li>${instruction}</li>`)
-                    .join('');
-            } else {
-                instructionList.innerHTML = '<li>No instructions found</li>';
-            }
-
-            document.getElementById('recipeDisplay').style.display = 'block';
-            document.getElementById('savedRecipesList').style.display = 'none';
-            document.getElementById('scaleInput').value = 1;
-        }
-
-        function scaleCurrentRecipe() {
-            if (!originalRecipe) return;
-
-            const scaleFactor = parseFloat(document.getElementById('scaleInput').value);
-            if (isNaN(scaleFactor) || scaleFactor <= 0) {
-                showStatus('Please enter a valid scale factor', 'error');
-                return;
-            }
-
-            currentRecipe = parser.scaleRecipe(originalRecipe, scaleFactor);
-            displayRecipe(currentRecipe);
-
-            if (scaleFactor !== 1) {
-                showStatus(`Recipe scaled by ${scaleFactor}x`, 'success');
-            }
-        }
-
-        function saveRecipe() {
-            if (!currentRecipe) return;
-
-            // Save new recipe
-            savedRecipes.push({ ...currentRecipe });
-            localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
-
-            currentSavedIndex = savedRecipes.length - 1;
-
-            document.getElementById('recipeCount').textContent = savedRecipes.length;
-            showStatus('Recipe saved successfully!', 'success');
-
-            // Update buttons
-            document.getElementById('saveBtn').style.display = 'none';
-            document.getElementById('updateBtn').style.display = 'inline-block';
-        }
-
-        function updateRecipe() {
-            if (!currentRecipe || currentSavedIndex === null) return;
-
-            // Prompt: replace original or save new
-            const replace = confirm("Replace original recipe? Click Cancel to save as a new recipe.");
-            if (replace) {
-                savedRecipes[currentSavedIndex] = { ...currentRecipe };
-                showStatus('Recipe updated successfully!', 'success');
-            } else {
-                // Save as new copy
-                savedRecipes.push({ ...currentRecipe });
-                currentSavedIndex = savedRecipes.length - 1;
-                showStatus('Recipe saved as a new copy!', 'success');
-            }
-
-            localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
-            document.getElementById('recipeCount').textContent = savedRecipes.length;
-
-            // Show proper buttons
-            document.getElementById('saveBtn').style.display = 'none';
-            document.getElementById('updateBtn').style.display = 'inline-block';
-        }
-
-        function showSavedRecipes() {
-            const container = document.getElementById('savedRecipesContent');
-            const listDiv = document.getElementById('savedRecipesList');
-
-            if (savedRecipes.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No saved recipes yet</h3>
-                        <p>Parse and save your first recipe to get started!</p>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = savedRecipes
-                    .map((recipe, index) => `
-                        <div class="saved-recipe" onclick="loadSavedRecipe(${index})">
-                            <h3>${recipe.name || 'Untitled Recipe'}</h3>
-                            <p>Saved on ${new Date(recipe.dateAdded).toLocaleDateString()}</p>
-                        </div>
-                    `)
-                    .join('');
-            }
-
-            document.getElementById('recipeDisplay').style.display = 'none';
-            listDiv.style.display = 'block';
-        }
-
-        function loadSavedRecipe(index) {
-            const recipe = savedRecipes[index];
-            if (recipe) {
-                currentRecipe = { ...recipe };
-                originalRecipe = { ...recipe };
-                currentSavedIndex = index;
-                displayRecipe(recipe);
-
-                // Show update button
-                document.getElementById('saveBtn').style.display = 'inline-block';
-                document.getElementById('editBtn').style.display = 'inline-block';
-                document.getElementById('updateBtn').style.display = 'none';
-            }
-
-            // Handle Enter key in URL input
-            document.getElementById('urlInput').addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    parseRecipe();
-                }
-            });
-        }
-    </script>
-</body>
-
-</html> -->
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -956,6 +349,14 @@ let editingSavedIndex = null;
                 return;
             }
 
+            const alreadySaved = savedRecipes.find(r => r.url === url);
+            if (alreadySaved) {
+                showStatus("Recipe already saved. Loading saved version instead.", "error");
+                const index = savedRecipes.indexOf(alreadySaved);
+                loadSavedRecipe(index);
+                return;
+            }
+
             // Show loading state
             showStatus('Parsing recipe from website...', 'loading');
             document.getElementById('parseBtn').innerHTML = '<span class="loading-spinner"></span> Parsing...';
@@ -1050,28 +451,88 @@ function saveEdits() {
 
     isEditing = false;
 
+    // If editing a saved recipe → show save choice popup
     if (editingSavedIndex !== null) {
-        const choice = confirm("Press OK to replace original.\nPress Cancel to save as copy.");
-
-        if (choice) {
-            savedRecipes[editingSavedIndex] = updatedRecipe;
-        } else {
-            updatedRecipe.dateAdded = new Date().toISOString();
-            savedRecipes.push(updatedRecipe);
-        }
-
-        localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
-        loadSavedRecipes();
-    } else {
-        currentRecipe = updatedRecipe;
+        showSaveChoicePopup(updatedRecipe);
+        return;
     }
 
+    // If editing unsaved recipe
     currentRecipe = updatedRecipe;
     originalRecipe = { ...updatedRecipe };
 
     cleanupEditUI();
     displayRecipe(updatedRecipe);
     showStatus("Recipe updated successfully!", "success");
+}
+
+function showSaveChoicePopup(updatedRecipe) {
+
+    const popup = document.createElement("div");
+    popup.id = "saveChoicePopup";
+    popup.style.position = "fixed";
+    popup.style.top = "0";
+    popup.style.left = "0";
+    popup.style.width = "100%";
+    popup.style.height = "100%";
+    popup.style.background = "rgba(0,0,0,0.5)";
+    popup.style.display = "flex";
+    popup.style.justifyContent = "center";
+    popup.style.alignItems = "center";
+    popup.style.zIndex = "9999";
+
+    popup.innerHTML = `
+        <div style="background:white; padding:25px; border-radius:10px; text-align:center; width:300px;">
+            <h3>Save Recipe As...</h3>
+            <button class="btn btn-primary" style="margin:10px;" id="saveOriginalBtn">
+                Original
+            </button>
+            <button class="btn btn-secondary" style="margin:10px;" id="saveCopyBtn">
+                Copy
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    document.getElementById("saveOriginalBtn").onclick = function () {
+
+        updatedRecipe.dateAdded = savedRecipes[editingSavedIndex].dateAdded;
+        savedRecipes[editingSavedIndex] = updatedRecipe;
+
+        finishSave(updatedRecipe, editingSavedIndex);
+    };
+
+    document.getElementById("saveCopyBtn").onclick = function () {
+
+        updatedRecipe.dateAdded = new Date().toISOString();
+        savedRecipes.push(updatedRecipe);
+
+        const newIndex = savedRecipes.length - 1;
+
+        finishSave(updatedRecipe, newIndex);
+    };
+}
+
+function finishSave(recipe, index) {
+
+    localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
+
+    // Update counter immediately
+    document.getElementById('recipeCount').textContent = savedRecipes.length;
+
+    editingSavedIndex = index;
+    currentRecipe = { ...recipe };
+    originalRecipe = { ...recipe };
+
+    cleanupEditUI();
+    displayRecipe(recipe);
+
+    // Remove popup
+    const popup = document.getElementById("saveChoicePopup");
+    if (popup) popup.remove();
+
+    showStatus("Recipe saved successfully!", "success");
 }
 
 function cancelEdit() {
@@ -1190,14 +651,14 @@ function cleanupEditUI() {
             listDiv.style.display = 'block';
         }
 
-        function loadSavedRecipe(index) {
-            const recipe = savedRecipes[index];
-            if (recipe) {
-                currentRecipe = { ...recipe };
-                originalRecipe = { ...recipe };
-                displayRecipe(recipe);
-            }
-        }
+        // function loadSavedRecipe(index) {
+        //     const recipe = savedRecipes[index];
+        //     if (recipe) {
+        //         currentRecipe = { ...recipe };
+        //         originalRecipe = { ...recipe };
+        //         displayRecipe(recipe);
+        //     }
+        // }
 
         // Handle Enter key in URL input
         document.getElementById('urlInput').addEventListener('keypress', function(e) {
