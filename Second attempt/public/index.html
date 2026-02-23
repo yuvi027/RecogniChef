@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recipe Parser MVP</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -16,10 +18,8 @@
         <div class="main-content">
             <div class="input-section">
                 <div class="input-group">
-                    <input type="url" 
-                           class="url-input" 
-                           id="urlInput" 
-                           placeholder="Enter recipe URL (e.g., https://meaningfuleats.com/...)">
+                    <input type="url" class="url-input" id="urlInput"
+                        placeholder="Enter recipe URL (e.g., https://meaningfuleats.com/...)">
                     <button class="btn btn-primary" onclick="parseRecipe()">
                         <span id="parseBtn">Parse Recipe</span>
                     </button>
@@ -35,13 +35,14 @@
                 <div class="scale-controls">
                     <span>Scale recipe:</span>
                     <input type="number" class="scale-input" id="scaleInput" value="1" min="0.1" max="10" step="0.1">
-                    <button class="btn btn-secondary" onclick="scaleCurrentRecipe()" style="padding: 8px 15px; font-size: 14px;">Apply</button>
+                    <button class="btn btn-secondary" onclick="scaleCurrentRecipe()"
+                        style="padding: 8px 15px; font-size: 14px;">Apply</button>
                     <span style="font-size: 0.9em; color: #666;">servings</span>
                 </div>
 
                 <div class="recipe-title" id="recipeTitle"></div>
                 <div class="recipe-meta" id="recipeMeta"></div>
-                
+
                 <div class="recipe-section">
                     <div class="section-title">Ingredients</div>
                     <ul class="ingredient-list" id="ingredientList"></ul>
@@ -52,12 +53,22 @@
                     <ol class="instruction-list" id="instructionList"></ol>
                 </div>
 
-                <button class="btn btn-primary" onclick="saveRecipe()" id="saveBtn">
-                    Save Recipe
-                </button>
-                <button class="btn btn-secondary" onclick="enterEditMode()" id="editBtn">
-    Edit Recipe
-</button>
+                <div id="recipeActions" style="margin-top:20px; display:flex; gap:10px;">
+
+    <button class="btn btn-primary" onclick="saveRecipe()" id="saveBtn">
+        Save Recipe
+    </button>
+
+    <button class="btn btn-secondary" onclick="enterEditMode()" id="editBtn">
+        Edit Recipe
+    </button>
+
+    <button class="btn btn-secondary" onclick="deleteCurrentRecipe()" 
+            id="deleteBtn" style="display:none;">
+        Delete Recipe
+    </button>
+
+</div>
             </div>
 
             <div class="recipes-list" id="savedRecipesList" style="display: none;">
@@ -80,11 +91,11 @@
                     // Since we can't directly fetch due to CORS, we'll use a proxy service
                     const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
                     const response = await fetch(proxyUrl);
-                    
+
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                    
+
                     const html = await response.text();
                     const parser = new DOMParser();
                     return parser.parseFromString(html, 'text/html');
@@ -96,7 +107,7 @@
 
             extractJsonLd(doc) {
                 const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
-                
+
                 for (let script of scripts) {
                     try {
                         const data = JSON.parse(script.textContent);
@@ -132,7 +143,7 @@
             extractMicrodata(doc) {
                 const recipeData = {};
                 const recipeElem = doc.querySelector('[itemtype*="schema.org/Recipe"]');
-                
+
                 if (!recipeElem) return recipeData;
 
                 const name = recipeElem.querySelector('[itemprop="name"]');
@@ -208,29 +219,29 @@
             }
 
             scaleRecipe(recipeData, scaleFactor) {
-    const scaled = { ...recipeData };
+                const scaled = { ...recipeData };
 
-    if (scaled.ingredients) {
-        scaled.ingredients = scaled.ingredients.map(ingredientText => {
-            const parsed = ingredientParser.parseIngredient(ingredientText);
+                if (scaled.ingredients) {
+                    scaled.ingredients = scaled.ingredients.map(ingredientText => {
+                        const parsed = ingredientParser.parseIngredient(ingredientText);
 
-            if (parsed.parsed && parsed.quantity != null) {
-                return ingredientParser.scaleIngredient(parsed, scaleFactor);
+                        if (parsed.parsed && parsed.quantity != null) {
+                            return ingredientParser.scaleIngredient(parsed, scaleFactor);
+                        }
+
+                        return ingredientText;
+                    });
+                }
+
+                if (scaled.servings) {
+                    const servingsNum = parseInt(scaled.servings);
+                    if (!isNaN(servingsNum)) {
+                        scaled.servings = Math.round(servingsNum * scaleFactor).toString();
+                    }
+                }
+
+                return scaled;
             }
-
-            return ingredientText;
-        });
-    }
-
-    if (scaled.servings) {
-        const servingsNum = parseInt(scaled.servings);
-        if (!isNaN(servingsNum)) {
-            scaled.servings = Math.round(servingsNum * scaleFactor).toString();
-        }
-    }
-
-    return scaled;
-}
 
             cleanRecipeData(data) {
                 const cleaned = {};
@@ -239,7 +250,7 @@
                 if (data.description) cleaned.description = data.description.trim();
 
                 if (data.recipeIngredient) {
-                    cleaned.ingredients = Array.isArray(data.recipeIngredient) 
+                    cleaned.ingredients = Array.isArray(data.recipeIngredient)
                         ? data.recipeIngredient.map(ing => ing.trim()).filter(ing => ing)
                         : [data.recipeIngredient.trim()];
                 }
@@ -247,7 +258,7 @@
                 if (data.recipeInstructions) {
                     cleaned.instructions = [];
                     const instructions = Array.isArray(data.recipeInstructions) ? data.recipeInstructions : [data.recipeInstructions];
-                    
+
                     for (let inst of instructions) {
                         let text = typeof inst === 'object' ? inst.text : inst;
                         if (text && text.trim()) {
@@ -268,7 +279,7 @@
             async parseRecipeFromUrl(url) {
                 try {
                     const doc = await this.fetchPage(url);
-                    
+
                     // Try JSON-LD first
                     let recipeData = this.extractJsonLd(doc);
                     if (recipeData && recipeData.name) {
@@ -309,31 +320,48 @@
 
         // Editing recipes
         let isEditing = false;
-let editingSavedIndex = null;
+        let editingSavedIndex = null;
 
         // Load saved recipes on startup
         loadSavedRecipes();
 
         function loadSavedRecipe(index) {
-    const recipe = savedRecipes[index];
-    if (recipe) {
-        currentRecipe = { ...recipe };
-        originalRecipe = { ...recipe };
-        editingSavedIndex = index;
-        displayRecipe(recipe);
-    }
-}
+            const recipe = savedRecipes[index];
+            if (recipe) {
+                currentRecipe = { ...recipe };
+                originalRecipe = { ...recipe };
+                editingSavedIndex = index;
+                displayRecipe(recipe);
+            }
+        }
+
+        function loadSavedRecipes() {
+            const stored = localStorage.getItem('savedRecipes');
+
+            if (stored) {
+                try {
+                    savedRecipes = JSON.parse(stored);
+                } catch (e) {
+                    savedRecipes = [];
+                }
+            } else {
+                savedRecipes = [];
+            }
+
+            // Update counter immediately
+            document.getElementById('recipeCount').textContent = savedRecipes.length;
+        }
 
         function showStatus(message, type) {
             const status = document.getElementById('status');
             status.textContent = message;
             status.className = `status ${type}`;
             status.style.display = 'block';
-            
+
             if (type === 'loading') {
                 status.innerHTML = `<span class="loading-spinner"></span> ${message}`;
             }
-            
+
             if (type !== 'loading') {
                 setTimeout(() => {
                     status.style.display = 'none';
@@ -343,7 +371,7 @@ let editingSavedIndex = null;
 
         async function parseRecipe() {
             const url = document.getElementById('urlInput').value.trim();
-            
+
             if (!url) {
                 showStatus('Please enter a valid URL', 'error');
                 return;
@@ -364,11 +392,11 @@ let editingSavedIndex = null;
 
             try {
                 const recipe = await parser.parseRecipeFromUrl(url);
-                
+
                 // Add metadata
                 recipe.url = url;
                 recipe.dateAdded = new Date().toISOString();
-                
+
                 // Set default values if missing
                 if (!recipe.prepTime) recipe.prepTime = 'Not specified';
                 if (!recipe.cookTime) recipe.cookTime = 'Not specified';
@@ -393,95 +421,113 @@ let editingSavedIndex = null;
 
     // Make title editable
     document.getElementById('recipeTitle').innerHTML =
-        `<input type="text" id="editTitle" value="${currentRecipe.name}" style="width:100%; font-size:1.5em;">`;
+        `<input type="text" id="editTitle" 
+                value="${currentRecipe.name || ''}" 
+                style="width:100%; font-size:1.5em;">`;
 
     // Make servings editable
     const meta = document.getElementById('recipeMeta');
     meta.innerHTML = `
         <div class="meta-item">
             🍽️ Serves:
-            <input type="text" id="editServings" value="${currentRecipe.servings}">
+            <input type="text" id="editServings" 
+                   value="${currentRecipe.servings || ''}">
         </div>
     `;
 
     // Ingredients editable
     const ingredientList = document.getElementById('ingredientList');
-    ingredientList.innerHTML = currentRecipe.ingredients
+    ingredientList.innerHTML = (currentRecipe.ingredients || [])
         .map((ing, i) =>
             `<li>
-                <input type="text" class="edit-ingredient" value="${ing}" data-index="${i}" style="width:100%;">
+                <input type="text" 
+                       class="edit-ingredient" 
+                       value="${ing}" 
+                       data-index="${i}" 
+                       style="width:100%;">
             </li>`
         ).join('');
 
     // Instructions editable
     const instructionList = document.getElementById('instructionList');
-    instructionList.innerHTML = currentRecipe.instructions
+    instructionList.innerHTML = (currentRecipe.instructions || [])
         .map((step, i) =>
             `<li>
-                <textarea class="edit-instruction" data-index="${i}" style="width:100%;">${step}</textarea>
+                <textarea class="edit-instruction" 
+                          data-index="${i}" 
+                          style="width:100%;">${step}</textarea>
             </li>`
         ).join('');
 
-    // Replace buttons
+    // 🔥 BUTTON CONTROL (no layout shift)
+
     document.getElementById('saveBtn').style.display = 'none';
     document.getElementById('editBtn').style.display = 'none';
+    document.getElementById('deleteBtn').style.display = 'none';
 
-    const container = document.querySelector('.recipe-display');
+    const actions = document.getElementById('recipeActions');
 
-    container.insertAdjacentHTML('beforeend', `
-        <div id="editActions">
-            <button class="btn btn-primary" onclick="saveEdits()">Save Changes</button>
-            <button class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
-        </div>
+    // Add Save Changes & Cancel inside the same button row
+    actions.insertAdjacentHTML('beforeend', `
+        <button class="btn btn-primary" 
+                id="saveChangesBtn" 
+                onclick="saveEdits()">
+            Save Changes
+        </button>
+
+        <button class="btn btn-secondary" 
+                id="cancelEditBtn" 
+                onclick="cancelEdit()">
+            Cancel
+        </button>
     `);
 }
+        function saveEdits() {
+            const updatedRecipe = {
+                ...currentRecipe,
+                name: document.getElementById('editTitle').value,
+                servings: document.getElementById('editServings').value,
+                ingredients: Array.from(document.querySelectorAll('.edit-ingredient'))
+                    .map(input => input.value.trim())
+                    .filter(v => v),
+                instructions: Array.from(document.querySelectorAll('.edit-instruction'))
+                    .map(textarea => textarea.value.trim())
+                    .filter(v => v)
+            };
 
-function saveEdits() {
-    const updatedRecipe = {
-        ...currentRecipe,
-        name: document.getElementById('editTitle').value,
-        servings: document.getElementById('editServings').value,
-        ingredients: Array.from(document.querySelectorAll('.edit-ingredient'))
-            .map(input => input.value.trim())
-            .filter(v => v),
-        instructions: Array.from(document.querySelectorAll('.edit-instruction'))
-            .map(textarea => textarea.value.trim())
-            .filter(v => v)
-    };
+            isEditing = false;
 
-    isEditing = false;
+            // If editing a saved recipe → show save choice popup
+            if (editingSavedIndex !== null) {
+                showSaveChoicePopup(updatedRecipe);
+                return;
+            }
 
-    // If editing a saved recipe → show save choice popup
-    if (editingSavedIndex !== null) {
-        showSaveChoicePopup(updatedRecipe);
-        return;
-    }
+            // If editing unsaved recipe
+            currentRecipe = updatedRecipe;
+            originalRecipe = { ...updatedRecipe };
 
-    // If editing unsaved recipe
-    currentRecipe = updatedRecipe;
-    originalRecipe = { ...updatedRecipe };
+            cleanupEditUI();
+            displayRecipe(updatedRecipe);
+            showStatus("Recipe updated successfully!", "success");
+        }
 
-    cleanupEditUI();
-    displayRecipe(updatedRecipe);
-    showStatus("Recipe updated successfully!", "success");
-}
+        function showSaveChoicePopup(updatedRecipe) {
 
-function showSaveChoicePopup(updatedRecipe) {
+            const popup = document.createElement("div");
+            popup.id = "saveChoicePopup";
+            popup.style.position = "fixed";
+            popup.style.top = "0";
+            popup.style.left = "0";
+            popup.style.width = "100%";
+            popup.style.height = "100%";
+            popup.style.background = "rgba(0,0,0,0.5)";
+            popup.style.display = "flex";
+            popup.style.justifyContent = "center";
+            popup.style.alignItems = "center";
+            popup.style.zIndex = "9999";
 
-    const popup = document.createElement("div");
-    popup.id = "saveChoicePopup";
-    popup.style.position = "fixed";
-    popup.style.top = "0";
-    popup.style.left = "0";
-    popup.style.width = "100%";
-    popup.style.height = "100%";
-    popup.style.background = "rgba(0,0,0,0.5)";
-    popup.style.display = "flex";
-    popup.style.justifyContent = "center";
-    popup.style.alignItems = "center";
-    popup.style.zIndex = "9999";
-
-    popup.innerHTML = `
+            popup.innerHTML = `
         <div style="background:white; padding:25px; border-radius:10px; text-align:center; width:300px;">
             <h3>Save Recipe As...</h3>
             <button class="btn btn-primary" style="margin:10px;" id="saveOriginalBtn">
@@ -493,72 +539,86 @@ function showSaveChoicePopup(updatedRecipe) {
         </div>
     `;
 
-    document.body.appendChild(popup);
+            document.body.appendChild(popup);
 
-    document.getElementById("saveOriginalBtn").onclick = function () {
+            document.getElementById("saveOriginalBtn").onclick = function () {
 
-        updatedRecipe.dateAdded = savedRecipes[editingSavedIndex].dateAdded;
-        savedRecipes[editingSavedIndex] = updatedRecipe;
+                updatedRecipe.dateAdded = savedRecipes[editingSavedIndex].dateAdded;
+                savedRecipes[editingSavedIndex] = updatedRecipe;
 
-        finishSave(updatedRecipe, editingSavedIndex);
-    };
+                finishSave(updatedRecipe, editingSavedIndex);
+            };
 
-    document.getElementById("saveCopyBtn").onclick = function () {
+            document.getElementById("saveCopyBtn").onclick = function () {
 
-        updatedRecipe.dateAdded = new Date().toISOString();
-        savedRecipes.push(updatedRecipe);
+                updatedRecipe.dateAdded = new Date().toISOString();
+                savedRecipes.push(updatedRecipe);
 
-        const newIndex = savedRecipes.length - 1;
+                const newIndex = savedRecipes.length - 1;
 
-        finishSave(updatedRecipe, newIndex);
-    };
-}
+                finishSave(updatedRecipe, newIndex);
+            };
+        }
 
-function finishSave(recipe, index) {
+        function finishSave(recipe, index) {
 
-    localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
+            localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
 
-    // Update counter immediately
-    document.getElementById('recipeCount').textContent = savedRecipes.length;
+            // Update counter immediately
+            document.getElementById('recipeCount').textContent = savedRecipes.length;
 
-    editingSavedIndex = index;
-    currentRecipe = { ...recipe };
-    originalRecipe = { ...recipe };
+            editingSavedIndex = index;
+            currentRecipe = { ...recipe };
+            originalRecipe = { ...recipe };
 
-    cleanupEditUI();
-    displayRecipe(recipe);
+            cleanupEditUI();
+            displayRecipe(recipe);
 
-    // Remove popup
-    const popup = document.getElementById("saveChoicePopup");
-    if (popup) popup.remove();
+            // Remove popup
+            const popup = document.getElementById("saveChoicePopup");
+            if (popup) popup.remove();
 
-    showStatus("Recipe saved successfully!", "success");
-}
+            showStatus("Recipe saved successfully!", "success");
+        }
 
-function cancelEdit() {
-    isEditing = false;
-    cleanupEditUI();
-    displayRecipe(currentRecipe);
-}
+        function cancelEdit() {
+            isEditing = false;
+            cleanupEditUI();
+            displayRecipe(currentRecipe);
+        }
 
-function cleanupEditUI() {
-    const editActions = document.getElementById('editActions');
-    if (editActions) editActions.remove();
+        function cleanupEditUI() {
+
+    const saveChangesBtn = document.getElementById("saveChangesBtn");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+
+    if (saveChangesBtn) saveChangesBtn.remove();
+    if (cancelEditBtn) cancelEditBtn.remove();
 
     document.getElementById('saveBtn').style.display = 'inline-block';
     document.getElementById('editBtn').style.display = 'inline-block';
+
+    if (editingSavedIndex !== null) {
+        document.getElementById('deleteBtn').style.display = 'inline-block';
+    } else {
+        document.getElementById('deleteBtn').style.display = 'none';
+    }
 }
 
         function displayRecipe(recipe) {
-            document.getElementById('recipeTitle').textContent = recipe.name || 'Untitled Recipe';
-            
+
+        
+
+            document.getElementById('recipeTitle').textContent =
+                recipe.name || 'Untitled Recipe';
+
             // Meta information
             const meta = document.getElementById('recipeMeta');
             meta.innerHTML = `
-                <div class="meta-item">⏱️ Prep: ${recipe.prepTime || 'Not specified'}</div>
-                <div class="meta-item">🍳 Cook: ${recipe.cookTime || 'Not specified'}</div>
-                <div class="meta-item">🍽️ Serves: ${recipe.servings || 'Not specified'}</div>
-            `;
+        <div class="meta-item">⏱️ Prep: ${recipe.prepTime || 'Not specified'}</div>
+        <div class="meta-item">🍳 Cook: ${recipe.cookTime || 'Not specified'}</div>
+        <div class="meta-item">🍽️ Serves: ${recipe.servings || 'Not specified'}</div>
+    `;
 
             // Ingredients
             const ingredientList = document.getElementById('ingredientList');
@@ -583,11 +643,60 @@ function cleanupEditUI() {
             document.getElementById('recipeDisplay').style.display = 'block';
             document.getElementById('savedRecipesList').style.display = 'none';
             document.getElementById('scaleInput').value = 1;
+
+            // Show delete button only for saved recipes
+const deleteBtn = document.getElementById("deleteBtn");
+
+if (editingSavedIndex !== null) {
+    deleteBtn.style.display = "inline-block";
+} else {
+    deleteBtn.style.display = "none";
+}
+        }
+
+        function deleteCurrentRecipe() {
+
+            if (editingSavedIndex === null) return;
+
+            const confirmDelete = confirm("Are you sure you want to delete this recipe?");
+            if (!confirmDelete) return;
+
+            savedRecipes.splice(editingSavedIndex, 1);
+
+            localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
+
+            document.getElementById('recipeCount').textContent = savedRecipes.length;
+
+            currentRecipe = null;
+            originalRecipe = null;
+            editingSavedIndex = null;
+
+            document.getElementById('recipeDisplay').style.display = 'none';
+
+            showSavedRecipes();
+
+            showStatus("Recipe deleted successfully!", "success");
+        }
+
+        function deleteRecipeFromList(index) {
+
+            const confirmDelete = confirm("Delete this recipe?");
+            if (!confirmDelete) return;
+
+            savedRecipes.splice(index, 1);
+
+            localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
+
+            document.getElementById('recipeCount').textContent = savedRecipes.length;
+
+            showSavedRecipes();
+
+            showStatus("Recipe deleted successfully!", "success");
         }
 
         function scaleCurrentRecipe() {
             if (!originalRecipe) return;
-            
+
             const scaleFactor = parseFloat(document.getElementById('scaleInput').value);
             if (isNaN(scaleFactor) || scaleFactor <= 0) {
                 showStatus('Please enter a valid scale factor', 'error');
@@ -596,7 +705,7 @@ function cleanupEditUI() {
 
             currentRecipe = parser.scaleRecipe(originalRecipe, scaleFactor);
             displayRecipe(currentRecipe);
-            
+
             if (scaleFactor !== 1) {
                 showStatus(`Recipe scaled by ${scaleFactor}x`, 'success');
             }
@@ -610,62 +719,68 @@ function cleanupEditUI() {
                 showStatus('Recipe already saved!', 'error');
                 return;
             }
-            
+
             savedRecipes.push({ ...currentRecipe });
             localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
-            
+
             // Update UI
             document.getElementById('recipeCount').textContent = savedRecipes.length;
             document.getElementById('saveBtn').textContent = 'Recipe Saved!';
-            
+
             setTimeout(() => {
                 document.getElementById('saveBtn').textContent = 'Save Recipe';
             }, 2000);
-            
+
             showStatus('Recipe saved successfully!', 'success');
         }
 
         function showSavedRecipes() {
+
             const container = document.getElementById('savedRecipesContent');
             const listDiv = document.getElementById('savedRecipesList');
-            
+
             if (savedRecipes.length === 0) {
                 container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No saved recipes yet</h3>
-                        <p>Parse and save your first recipe to get started!</p>
-                    </div>
-                `;
+            <div class="empty-state">
+                <h3>No saved recipes yet</h3>
+                <p>Parse and save your first recipe to get started!</p>
+            </div>
+        `;
             } else {
+
                 container.innerHTML = savedRecipes
                     .map((recipe, index) => `
-                        <div class="saved-recipe" onclick="loadSavedRecipe(${index})">
-                            <h3>${recipe.name || 'Untitled Recipe'}</h3>
-                            <p>Saved on ${new Date(recipe.dateAdded).toLocaleDateString()}</p>
-                        </div>
-                    `)
+                <div class="saved-recipe" 
+                     style="display:flex; justify-content:space-between; align-items:center;">
+
+                    <div onclick="loadSavedRecipe(${index})" 
+                         style="cursor:pointer;">
+                        <h3 style="margin:0;">
+                            ${recipe.name || 'Untitled Recipe'}
+                        </h3>
+                    </div>
+
+                    <button class="btn btn-secondary"
+                            style="font-size:12px;"
+                            onclick="deleteRecipeFromList(${index}); event.stopPropagation();">
+                        Delete
+                    </button>
+
+                </div>
+            `)
                     .join('');
             }
-            
+
             document.getElementById('recipeDisplay').style.display = 'none';
             listDiv.style.display = 'block';
         }
-
-        // function loadSavedRecipe(index) {
-        //     const recipe = savedRecipes[index];
-        //     if (recipe) {
-        //         currentRecipe = { ...recipe };
-        //         originalRecipe = { ...recipe };
-        //         displayRecipe(recipe);
-        //     }
-        // }
-
         // Handle Enter key in URL input
-        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+        document.getElementById('urlInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 parseRecipe();
             }
         });
     </script>
 </body>
+
 </html>
