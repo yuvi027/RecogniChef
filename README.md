@@ -17,6 +17,7 @@
 - 🔜 Instagram Reel & Caption parsing
 - 🔜 Generate shopping lists from recipes
 - 🔜 User login and cloud sync
+- 🔜 Turn this into an app
 
 ## 🚧 Known Bugs
 
