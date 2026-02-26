@@ -1,0 +1,471 @@
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    /* .container {
+        max-width: 1800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        overflow: hidden;
+    } */
+
+
+    .container {
+    width: 95%; 
+    max-width: 1800px; 
+    height: 90vh; 
+    margin: 20px auto; 
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    overflow: hidden; /* Keeps content inside the rounded corners */
+}
+
+    .header {
+        background: linear-gradient(135deg, #ff6b6b, #ffa500);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+
+    .header p {
+        font-size: 1.1em;
+        opacity: 0.9;
+    }
+
+    .main-content {
+        padding: 40px;
+    }
+
+    .input-section {
+        margin-bottom: 30px;
+    }
+
+    .input-group {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .url-input {
+        flex: 1;
+        padding: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+    }
+
+    .url-input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .btn {
+        padding: 15px 30px;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102,126,234,0.3);
+    }
+
+    .btn-secondary {
+        background: #f8f9fa;
+        color: #6c757d;
+        border: 2px solid #e0e0e0;
+    }
+
+    .btn-secondary:hover {
+        background: #e9ecef;
+    }
+
+    .status {
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-weight: 500;
+        display: none;
+    }
+
+    .status.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .status.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .status.loading {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+
+    .recipe-display {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 30px;
+        margin-top: 20px;
+        display: none;
+    }
+
+    .recipe-title {
+        font-size: 1.8em;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+
+    .recipe-meta {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        background: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 0.9em;
+        color: #6c757d;
+    }
+
+    .recipe-section {
+        margin-bottom: 25px;
+    }
+
+    .section-title {
+        font-size: 1.2em;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-weight: 600;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 5px;
+    }
+
+    .ingredient-list, .instruction-list {
+        list-style: none;
+    }
+
+    .ingredient-list li {
+        background: white;
+        padding: 12px 15px;
+        margin-bottom: 8px;
+        border-radius: 8px;
+        border-left: 4px solid #ff6b6b;
+    }
+
+    .instruction-list li {
+        background: white;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+        position: relative;
+    }
+
+    .instruction-list li::before {
+        content: counter(step-counter);
+        counter-increment: step-counter;
+        position: absolute;
+        left: -20px;
+        top: 15px;
+        background: #667eea;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9em;
+    }
+
+    .instruction-list {
+        counter-reset: step-counter;
+    }
+
+    .recipes-list {
+        margin-top: 30px;
+    }
+
+    .saved-recipe {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .saved-recipe:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+
+    .saved-recipe h3 {
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+
+    .saved-recipe p {
+        color: #6c757d;
+        font-size: 0.9em;
+    }
+
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+    }
+
+    .empty-state h3 {
+        margin-bottom: 10px;
+    }
+
+    .scale-controls {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .scale-input {
+        width: 80px;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        text-align: center;
+    }
+
+
+    .editable-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.drag-handle {
+    cursor: grab;
+    user-select: none;
+}
+
+.delete-row-btn {
+    background: none;
+    border: none;
+    color: red;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.dragging {
+    opacity: 0.5;
+}
+
+.add-btn {
+    margin-top: 8px;
+}
+/* Layout container
+.app-container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Sidebar 
+.sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    border-right: 1px solid #e5e7eb;
+    padding: 20px 15px;
+    background: #fafafa;
+}
+
+/* Main content 
+.main-content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+/* Parse section 
+.parse-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.parse-section input {
+    flex: 1;
+    padding: 8px;
+}
+
+/* Recipes section 
+.recipes-section h2 {
+    margin-bottom: 10px;
+}
+
+/* Remove unnecessary vertical spacing 
+.recipes-section {
+    margin-top: 0;
+}
+
+/* Sidebar folder styling 
+.folder-item {
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.folder-item:hover {
+    background: #f0f0f0;
+}
+
+.folder-item.active {
+    background: #dbeafe;
+    font-weight: 600;
+}
+
+.new-folder-btn {
+    margin-top: 12px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #2563eb;
+} */
+
+/* New Layout Wrapper */
+.app-layout {
+    display: flex;
+    min-height: 500px;
+}
+
+.sidebar {
+    width: 220px;
+    background: #2d3436; /* Dark slate to match your purple theme */
+    color: white;
+    padding: 20px;
+    border-right: 1px solid #eee;
+    height: 1000%; /* Now it will stretch to the bottom of the .main-content-area */
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar h3 {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: #a29bfe;
+}
+
+.main-content {
+    flex: 1;
+    padding: 30px !important; /* Overriding previous padding */
+}
+
+.folder-item {
+    padding: 12px 10px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    transition: background 0.2s;
+}
+
+.folder-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.folder-item.active {
+    background: #6c5ce7; /* Purple active state */
+    font-weight: bold;
+}
+
+.count-badge {
+    background: rgba(0,0,0,0.2);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.8em;
+}
+
+.new-folder-btn {
+    margin-top: 20px;
+    color: #a29bfe;
+    cursor: pointer;
+    font-size: 0.9em;
+    padding-left: 10px;
+}
+
+.new-folder-btn:hover {
+    text-decoration: underline;
+}
+
+/* Smaller buttons for the list */
+.btn-small {
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+}
