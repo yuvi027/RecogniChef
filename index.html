@@ -935,7 +935,10 @@ function deleteCookbook(name) {
     if (!isEditingCookbooks) {
 
         sidebar.innerHTML = `
-            <h3>Cookbooks</h3>
+            <h3>
+  Cookbooks 
+  (<span id="recipeCount">0</span>)
+</h3>
 
             ${Object.keys(cookbooks).map(name => `
                 <div class="folder-item ${name === currentFolder ? "active" : ""}"
