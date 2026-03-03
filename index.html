@@ -346,7 +346,11 @@
 
         function updateRecipeCount() {
             const count = cookbooks["All Recipes"].length;
-            document.getElementById("recipeCount").textContent = count;
+            const counter = document.getElementById("recipeCount");
+
+            if (counter) {
+                counter.textContent = count;
+            }
         }
 
         function showStatus(message, type) {
