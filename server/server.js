@@ -126,6 +126,16 @@ app.put('/api/recipes/:id', (req, res) => {
     });
 });
 
+// Route for Random Recipe Generation
+app.post('/api/generate-random', (req, res) => {
+    const { count } = req.body;
+    
+    console.log("rendonm recepie gen presed");
+    console.log(`Requested count: ${count}`);
+    
+    res.json({ message: "Random recipe generation requested" });
+});
+
 app.listen(PORT, () => {
     console.log(`\n[SERVER START] Listening at http://localhost:${PORT}\n`);
 });
