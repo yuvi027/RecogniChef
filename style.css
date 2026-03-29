@@ -1,10 +1,10 @@
+/* Reset & base */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* ✅ Allow full page scrolling */
 html, body {
     height: auto;
     overflow-y: auto;
@@ -13,9 +13,11 @@ html, body {
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
 }
 
-/* ✅ Main container */
+/* Main container */
 .container {
     width: 95%;
     max-width: 1800px;
@@ -25,8 +27,6 @@ body {
     background: white;
     border-radius: 20px;
     box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-
-    /* 🔥 KEY FIX */
     min-height: 90vh;
     overflow: hidden;
 }
@@ -50,11 +50,9 @@ body {
     opacity: 0.9;
 }
 
-/* ✅ Layout */
+/* Layout */
 .app-layout {
     display: flex;
-
-    /* 🔥 KEY FIX: enables proper scrolling */
     flex: 1;
     min-height: 0;
 }
@@ -65,11 +63,9 @@ body {
     background: #2d3436;
     color: white;
     padding: 20px;
-
     display: flex;
     flex-direction: column;
-
-    /* 🔥 FIX: removed height: 1000% */
+    border-right: 1px solid #eee;
 }
 
 .sidebar h3 {
@@ -78,12 +74,49 @@ body {
     color: #a29bfe;
 }
 
-/* ✅ Main content scroll area */
+.folder-item {
+    padding: 12px 10px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    transition: background 0.2s;
+}
+
+.folder-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.folder-item.active {
+    background: #6c5ce7;
+    font-weight: bold;
+}
+
+.count-badge {
+    background: rgba(0,0,0,0.2);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.8em;
+}
+
+.new-folder-btn {
+    margin-top: 20px;
+    color: #a29bfe;
+    cursor: pointer;
+    font-size: 0.9em;
+    padding-left: 10px;
+    transition: text-decoration 0.2s;
+}
+
+.new-folder-btn:hover {
+    text-decoration: underline;
+}
+
+/* Main content scroll area */
 .main-content {
     flex: 1;
     padding: 30px;
-
-    /* 🔥 THIS FIXES SCROLLING */
     overflow-y: auto;
     min-height: 0;
 }
@@ -105,6 +138,7 @@ body {
     border: 2px solid #e0e0e0;
     border-radius: 12px;
     font-size: 16px;
+    transition: border-color 0.3s;
 }
 
 .url-input:focus {
@@ -120,6 +154,7 @@ body {
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
+    transition: all 0.3s;
 }
 
 .btn-primary {
@@ -129,6 +164,7 @@ body {
 
 .btn-primary:hover {
     transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102,126,234,0.3);
 }
 
 .btn-secondary {
@@ -137,17 +173,96 @@ body {
     border: 2px solid #e0e0e0;
 }
 
+.btn-secondary:hover {
+    background: #e9ecef;
+}
+
+/* Small buttons for actions (edit, save, etc) */
+.btn-small,
+.edit-btn,
+.save-btn {
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-small:hover,
+.edit-btn:hover,
+.save-btn:hover {
+    background: #f1f3f5;
+    transform: translateY(-1px);
+}
+
+/* Delete button */
+.delete-row-btn {
+    background: none;
+    border: none;
+    color: red;
+    cursor: pointer;
+    font-size: 16px;
+    transition: transform 0.15s ease, color 0.2s ease;
+}
+
+.delete-row-btn:hover {
+    color: #c0392b;
+    transform: scale(1.2);
+}
+
+/* Add button */
+.add-btn {
+    margin-top: 8px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px dashed #ccc;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.add-btn:hover {
+    background: #f0f0f0;
+}
+
+/* Drag handle */
+.drag-handle {
+    cursor: grab;
+    user-select: none;
+}
+
+.dragging {
+    opacity: 0.5;
+}
+
 /* Status */
 .status {
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 20px;
+    font-weight: 500;
     display: none;
 }
 
-.status.success { background: #d4edda; }
-.status.error { background: #f8d7da; }
-.status.loading { background: #d1ecf1; }
+.status.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.status.loading {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
 
 /* Recipe display */
 .recipe-display {
@@ -160,11 +275,11 @@ body {
 
 .recipe-title {
     font-size: 1.8em;
+    color: #2c3e50;
     margin-bottom: 15px;
     font-weight: 700;
 }
 
-/* Meta */
 .recipe-meta {
     display: flex;
     gap: 20px;
@@ -176,6 +291,8 @@ body {
     background: white;
     padding: 10px 15px;
     border-radius: 8px;
+    font-size: 0.9em;
+    color: #6c757d;
 }
 
 /* Sections */
@@ -185,6 +302,7 @@ body {
 
 .section-title {
     font-size: 1.2em;
+    color: #2c3e50;
     margin-bottom: 15px;
     font-weight: 600;
     border-bottom: 2px solid #e0e0e0;
@@ -192,8 +310,7 @@ body {
 }
 
 /* Lists */
-.ingredient-list,
-.instruction-list {
+.ingredient-list, .instruction-list {
     list-style: none;
 }
 
@@ -232,112 +349,122 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-/* Sidebar items */
-.folder-item {
-    padding: 12px 10px;
-    margin-bottom: 5px;
-    cursor: pointer;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-}
-
-.folder-item:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.folder-item.active {
-    background: #6c5ce7;
     font-weight: bold;
+    font-size: 0.9em;
 }
 
-.count-badge {
-    background: rgba(0,0,0,0.2);
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 0.8em;
+/* Editable items inside cookbooks */
+.editable-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
 }
 
-.new-folder-btn {
-    margin-top: 20px;
-    color: #a29bfe;
-    cursor: pointer;
-}
-
-/* Small buttons */
-.btn-small {
-    padding: 5px 10px;
-    font-size: 12px;
-    border-radius: 5px;
-    border: 1px solid #ddd;
+/* Saved recipe cards */
+.saved-recipe {
     background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
 }
 
-/* Button hover effects (RESTORED) */
-.btn-primary:hover {
+.saved-recipe:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(102,126,234,0.3);
 }
 
-.btn-secondary:hover {
-    background: #e9ecef;
+.saved-recipe h3 {
+    color: #2c3e50;
+    margin-bottom: 8px;
 }
 
-/* Small buttons (edit/delete/etc) */
-.btn-small {
+.saved-recipe p {
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+/* Loading spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+.empty-state h3 {
+    margin-bottom: 10px;
+}
+
+/* Scale controls */
+.scale-controls {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.scale-input {
+    width: 80px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.recipe-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.recipe-actions .btn-small {
     padding: 6px 12px;
     font-size: 13px;
     border-radius: 6px;
     border: 1px solid #ddd;
-    background: white;
     cursor: pointer;
     transition: all 0.2s ease;
+    background: white;
+    color: #333;
 }
 
-.btn-small:hover {
+.recipe-actions .edit-btn:hover,
+.recipe-actions .save-btn:hover {
     background: #f1f3f5;
     transform: translateY(-1px);
 }
 
-/* Delete button (red) */
-.delete-row-btn {
-    background: none;
-    border: none;
-    color: #e74c3c;
-    cursor: pointer;
-    font-size: 16px;
-    transition: transform 0.15s ease, color 0.2s ease;
+.recipe-actions .delete-row-btn {
+    background: white;
+    border: 1px solid #ddd;
+    color: red;
 }
 
-.delete-row-btn:hover {
+.recipe-actions .delete-row-btn:hover {
     color: #c0392b;
-    transform: scale(1.2);
-}
-
-/* Add button */
-.add-btn {
-    margin-top: 10px;
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px dashed #ccc;
-    background: #fafafa;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.add-btn:hover {
-    background: #f0f0f0;
-}
-
-/* Drag handle */
-.drag-handle {
-    cursor: grab;
-    user-select: none;
-    font-size: 16px;
-}
-
-.dragging {
-    opacity: 0.5;
+    transform: scale(1.1);
+    background: #f9eaea;
 }
