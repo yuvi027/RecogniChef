@@ -6,11 +6,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recipe Parser MVP</title>
     <link rel="stylesheet" href="style.css">
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // <-- Replace this with your Firebase config
+    const firebaseConfig = {
+        apiKey: "AIzaSyBkeVtQpqeURF1s9dxnfqQbo8cRwKVV2sM",
+        authDomain: "recognichef.firebaseapp.com",
+        projectId: "recognichef",
+        storageBucket: "recognichef.firebasestorage.app",
+        messagingSenderId: "851105684733",
+        appId: "1:851105684733:web:7cb1a8301ed4b39af97294",
+        measurementId: "G-TWWH2T7H1V"
+        };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Export for use in other scripts
+    window.auth = auth;
+    window.db = db;
+</script>
 </head>
 
 <body>
+    <!-- LOGIN PAGE -->
+    <div id="loginContainer" style="text-align:center; padding:50px;">
+        <h1>🍳 Recipe Parser - Sign In</h1>
+        <input type="email" id="emailInput" placeholder="Email" style="display:block; margin:10px auto; padding:5px; width:250px;">
+        <input type="password" id="passwordInput" placeholder="Password" style="display:block; margin:10px auto; padding:5px; width:250px;">
+        <button id="signInBtn" class="btn btn-primary" style="margin:5px;">Sign In</button>
+        <button id="registerBtn" class="btn btn-secondary" style="margin:5px;">Register</button>
+        <div id="loginStatus" style="margin-top:10px; color:red;"></div>
+    </div>
 
-    <div class="container">
+    <div class="container" id="appContainer" style="display:none;">
         <div class="header">
             <h1>🍳 Recipe Parser</h1>
             <p>Extract and save recipes from any website</p>
@@ -113,6 +147,58 @@
 
 
     <script src="./js/IngredientParser.js"></script>
+
+    <script>
+        // ==========================
+        // BEGIN AUTH HANDLING
+        // ==========================
+        const loginContainer = document.getElementById('loginContainer');
+        const appContainer = document.getElementById('appContainer');
+        const loginStatus = document.getElementById('loginStatus');
+
+        document.getElementById('signInBtn').addEventListener('click', async () => {
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                loginStatus.textContent = '';
+                showApp();
+            } catch (error) {
+                loginStatus.textContent = error.message;
+            }
+        });
+
+        document.getElementById('registerBtn').addEventListener('click', async () => {
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                loginStatus.textContent = 'Registration successful! Signing in...';
+                showApp();
+            } catch (error) {
+                loginStatus.textContent = error.message;
+            }
+        });
+
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                showApp();
+            }
+        });
+
+        function showApp() {
+            loginContainer.style.display = 'none';
+            appContainer.style.display = 'block';
+        }
+        // ==========================
+        // END AUTH HANDLING
+        // ==========================
+
+        // ==========================
+        // REST OF YOUR RECIPE PARSER JS GOES HERE
+        // Keep all your previous code (RecipeParser class, parseRecipe, editRecipe, etc.)
+        // ==========================
+    </script>
 
     <script>
         // JavaScript Recipe Parser Class

@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Match all documents in the "recipes" collection
+    match /recipes/{recipeId} {
+
+      // Allow read/write only if the user is authenticated
+      // AND the document's "ownerId" field matches their uid
+      allow read, write: if request.auth != null
+                         && request.auth.uid == resource.data.ownerId;
+      
+      // When creating a new recipe, allow if the ownerId is the user's uid
+      allow create: if request.auth != null
+                    && request.resource.data.ownerId == request.auth.uid;
+    }
+  }
+}
