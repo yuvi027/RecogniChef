@@ -34,8 +34,30 @@
 
                 <div class="status" id="status"></div>
 
-                <div class="recipe-display" id="recipeDisplay">
-                </div>
+                <div class="recipe-display" id="recipeDisplay" style="display:none;">
+
+    <h2 id="recipeTitle"></h2>
+
+    <div id="recipeMeta"></div>
+
+    <h3>Ingredients</h3>
+    <ul id="ingredientList"></ul>
+
+    <h3>Instructions</h3>
+    <ol id="instructionList"></ol>
+
+    <div style="margin-top:15px;">
+        Scale:
+        <input type="number" id="scaleInput" value="1" step="0.5" onchange="scaleCurrentRecipe()">
+    </div>
+
+    <div id="recipeActions" style="margin-top:15px;">
+        <button id="saveBtn" onclick="saveRecipe()">Save</button>
+        <button id="editBtn" onclick="enterEditMode()">Edit</button>
+        <button id="deleteBtn" onclick="deleteCurrentRecipe()" style="display:none;">Delete</button>
+    </div>
+
+</div>
 
                 <div class="recipes-list" id="savedRecipesList" style="display: none;">
                     <div class="section-title">Recipes</div>
@@ -47,7 +69,7 @@
 
 
 
-    <script src="js/IngredientParser.js"></script>
+    <script src="./js/IngredientParser.js"></script>
 
     <script>
         // JavaScript Recipe Parser Class
