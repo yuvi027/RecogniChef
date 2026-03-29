@@ -11,10 +11,12 @@
 - ✏️ Can edit saved recipes
 - ❌ Can delete recipes
 - 📖 Organize recipes into cookbooks
+- 🚀 Generate recipes (AI agent)
+- 🗃️ Created global database
 
 ## 🔮 Planned Features
 
-- 🔜 Instagram Reel & Caption parsing
+- 🔜 Instagram Reel & Caption parsing ? (from Noa's AI agent?)
 - 🔜 Generate shopping lists from recipes
 - 🔜 User login and cloud sync
 - 🔜 Turn this into an app
