@@ -10,13 +10,14 @@
 - 🗃️ Server support using SQLite (included)
 - ✏️ Can edit saved recipes
 - ❌ Can delete recipes
+- 📖 Organize recipes into cookbooks
 
 ## 🔮 Planned Features
 
 - 🔜 Instagram Reel & Caption parsing
-- 🔜 Organize recipes into cookbooks
 - 🔜 Generate shopping lists from recipes
 - 🔜 User login and cloud sync
+- 🔜 Turn this into an app
 
 ## 🚧 Known Bugs
 
