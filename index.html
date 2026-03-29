@@ -294,7 +294,7 @@
         let isEditing = false;
         let editingSavedIndex = null;
 
-         // Editing cookbooks
+        // Editing cookbooks
         let isEditingCookbooks = false;
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -346,7 +346,10 @@
 
         function updateRecipeCount() {
             const count = cookbooks["All Recipes"].length;
-            document.getElementById("recipeCount").textContent = count;
+            const counter = document.getElementById("recipeCount");
+            if (counter) {
+                counter.textContent = count;
+            }
         }
 
         function showStatus(message, type) {
@@ -699,110 +702,110 @@
 
         function createCookbookFromEdit() {
 
-    const name = prompt("Enter cookbook name:");
-    if (!name || cookbooks[name]) return;
+            const name = prompt("Enter cookbook name:");
+            if (!name || cookbooks[name]) return;
 
-    cookbooks[name] = [];
+            cookbooks[name] = [];
 
-    localStorage.setItem("cookbooks", JSON.stringify(cookbooks));
-    renderSidebar();
-}
-        
+            localStorage.setItem("cookbooks", JSON.stringify(cookbooks));
+            renderSidebar();
+        }
+
         function enterCookbookEditMode() {
-    isEditingCookbooks = true;
-    renderSidebar();
-}
-
-function enableCookbookDrag() {
-
-    const container = document.getElementById("cookbookEditList");
-
-    const items = container.querySelectorAll(".cookbook-item");
-
-    items.forEach(item => {
-
-        item.addEventListener("dragstart", () => {
-            item.classList.add("dragging");
-        });
-
-        item.addEventListener("dragend", () => {
-            item.classList.remove("dragging");
-        });
-    });
-
-    container.addEventListener("dragover", e => {
-        e.preventDefault();
-
-        const dragging = container.querySelector(".dragging");
-        const afterElement = getCookbookDragAfter(container, e.clientY);
-
-        if (!afterElement) {
-            container.appendChild(dragging);
-        } else {
-            container.insertBefore(dragging, afterElement);
-        }
-    });
-}
-
-function getCookbookDragAfter(container, y) {
-
-    const elements = [...container.querySelectorAll(".cookbook-item:not(.dragging)")];
-
-    return elements.reduce((closest, child) => {
-
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
-
-        if (offset < 0 && offset > closest.offset) {
-            return { offset: offset, element: child };
-        } else {
-            return closest;
+            isEditingCookbooks = true;
+            renderSidebar();
         }
 
-    }, { offset: Number.NEGATIVE_INFINITY }).element;
-}
+        function enableCookbookDrag() {
 
-function saveCookbookOrder() {
+            const container = document.getElementById("cookbookEditList");
 
-    const items = document.querySelectorAll("#cookbookEditList .cookbook-item");
+            const items = container.querySelectorAll(".cookbook-item");
 
-    const newCookbooks = {};
+            items.forEach(item => {
 
-    items.forEach(item => {
+                item.addEventListener("dragstart", () => {
+                    item.classList.add("dragging");
+                });
 
-        const name = item.querySelector("span:nth-child(2)").textContent;
+                item.addEventListener("dragend", () => {
+                    item.classList.remove("dragging");
+                });
+            });
 
-        newCookbooks[name] = cookbooks[name];
-    });
+            container.addEventListener("dragover", e => {
+                e.preventDefault();
 
-    cookbooks = newCookbooks;
+                const dragging = container.querySelector(".dragging");
+                const afterElement = getCookbookDragAfter(container, e.clientY);
 
-    localStorage.setItem("cookbooks", JSON.stringify(cookbooks));
+                if (!afterElement) {
+                    container.appendChild(dragging);
+                } else {
+                    container.insertBefore(dragging, afterElement);
+                }
+            });
+        }
 
-    isEditingCookbooks = false;
-    renderSidebar();
-}
+        function getCookbookDragAfter(container, y) {
 
-function cancelCookbookEdit() {
-    isEditingCookbooks = false;
-    renderSidebar();
-}
+            const elements = [...container.querySelectorAll(".cookbook-item:not(.dragging)")];
 
-function deleteCookbook(name) {
+            return elements.reduce((closest, child) => {
 
-    if (name === "All Recipes") {
-        showStatus("Cannot delete All Recipes", "error");
-        return;
-    }
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
 
-    const confirmDelete = confirm(`Delete cookbook "${name}"?`);
-    if (!confirmDelete) return;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
 
-    delete cookbooks[name];
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
 
-    localStorage.setItem("cookbooks", JSON.stringify(cookbooks));
-    renderSidebar();
-}
+        function saveCookbookOrder() {
+
+            const items = document.querySelectorAll("#cookbookEditList .cookbook-item");
+
+            const newCookbooks = {};
+
+            items.forEach(item => {
+
+                const name = item.querySelector("span:nth-child(2)").textContent;
+
+                newCookbooks[name] = cookbooks[name];
+            });
+
+            cookbooks = newCookbooks;
+
+            localStorage.setItem("cookbooks", JSON.stringify(cookbooks));
+
+            isEditingCookbooks = false;
+            renderSidebar();
+        }
+
+        function cancelCookbookEdit() {
+            isEditingCookbooks = false;
+            renderSidebar();
+        }
+
+        function deleteCookbook(name) {
+
+            if (name === "All Recipes") {
+                showStatus("Cannot delete All Recipes", "error");
+                return;
+            }
+
+            const confirmDelete = confirm(`Delete cookbook "${name}"?`);
+            if (!confirmDelete) return;
+
+            delete cookbooks[name];
+
+            localStorage.setItem("cookbooks", JSON.stringify(cookbooks));
+            renderSidebar();
+        }
 
         function displayRecipe(recipe) {
 
@@ -930,12 +933,15 @@ function deleteCookbook(name) {
         }
 
         function renderSidebar() {
-    const sidebar = document.getElementById("sidebar");
+            const sidebar = document.getElementById("sidebar");
 
-    if (!isEditingCookbooks) {
+            if (!isEditingCookbooks) {
 
-        sidebar.innerHTML = `
-            <h3>Cookbooks</h3>
+                sidebar.innerHTML = `
+            <h3>
+  Cookbooks 
+  (<span id="recipeCount">0</span>)
+</h3>
 
             ${Object.keys(cookbooks).map(name => `
                 <div class="folder-item ${name === currentFolder ? "active" : ""}"
@@ -952,9 +958,9 @@ function deleteCookbook(name) {
             </button>
         `;
 
-    } else {
+            } else {
 
-        sidebar.innerHTML = `
+                sidebar.innerHTML = `
             <h3>Edit Cookbooks</h3>
 
             <div id="cookbookEditList">
@@ -990,9 +996,9 @@ function deleteCookbook(name) {
             </div>
         `;
 
-        enableCookbookDrag();
-    }
-}
+                enableCookbookDrag();
+            }
+        }
         // Also update showSavedRecipes to remove the "tabs" from the center
         function showSavedRecipes() {
             const container = document.getElementById('savedRecipesContent');
