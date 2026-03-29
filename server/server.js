@@ -128,10 +128,16 @@ app.put('/api/recipes/:id', (req, res) => {
 
 // Route for Random Recipe Generation
 app.post('/api/generate-random', (req, res) => {
-    const { count } = req.body;
+    const { count, requirements } = req.body;
     
     console.log("rendonm recepie gen presed");
     console.log(`Requested count: ${count}`);
+    
+    if (requirements && requirements.length > 0) {
+        console.log(`Specific Requirements: ${requirements.join(", ")}`);
+    } else {
+        console.log(`Specific Requirements: None`);
+    }
     
     res.json({ message: "Random recipe generation requested" });
 });
