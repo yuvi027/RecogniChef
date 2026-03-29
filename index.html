@@ -118,7 +118,30 @@
                     </div>
                 </div>
 
+                <!-- API Key Modal -->
+                <div id="apiKeyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+                    <div style="background:white; padding:30px; border-radius:15px; width:400px; max-width:90%; position:relative;">
+                        <h2 style="margin-bottom:10px;">🔑 Enter Gemini API Key</h2>
+                        <p style="margin-bottom:20px; font-size: 0.9em; color: #666;">
+                            To generate AI recipes, please provide your personal Gemini API key. It will be securely stored in your browser's local storage.
+                        </p>
+                        
+                        <input type="password" id="geminiKeyInput" placeholder="AIzaSy..." style="width:100%; padding:10px; margin-bottom:20px; border:1px solid #ccc; border-radius:5px;">
+
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn" style="flex:1; background:#eee; color:#333;" onclick="closeApiKeyModal()">Cancel</button>
+                            <button class="btn btn-primary" style="flex:1;" onclick="saveApiKey()">Save & Continue</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="recipe-display" id="recipeDisplay" style="display:none;">
+
+    <div id="aiNavControls" style="display:none; margin-bottom:15px; background:#f9f9f9; padding:10px; border-radius:10px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+        <button id="prevAiBtn" class="btn-small" onclick="prevAiRecipe()">⬅ Prev</button>
+        <div id="aiRecipeIndex">AI Recipe 1 of 1</div>
+        <button id="nextAiBtn" class="btn-small" onclick="nextAiRecipe()">Next ➡</button>
+    </div>
 
     <h2 id="recipeTitle"></h2>
 
@@ -391,6 +414,10 @@
         let currentRecipe = null;
         let originalRecipe = null;
         let currentFolder = "All Recipes";
+        
+        // AI Recipe States
+        let aiResults = [];
+        let aiIndex = 0;
 
         // Parser
         const parser = new RecipeParser();
@@ -550,28 +577,113 @@
             modal.style.display = 'none';
         }
 
+        function openApiKeyModal() {
+            document.getElementById('apiKeyModal').style.display = 'flex';
+        }
+
+        function closeApiKeyModal() {
+            document.getElementById('apiKeyModal').style.display = 'none';
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('geminiKeyInput').value.trim();
+            if (key) {
+                localStorage.setItem('gemini_api_key', key);
+                closeApiKeyModal();
+                // Resume generation automatically!
+                generateRandomRecipes();
+            } else {
+                alert("Please enter a valid API key.");
+            }
+        }
+
         function generateRandomRecipes() {
+            const apiKey = localStorage.getItem('gemini_api_key');
+            if (!apiKey) {
+                openApiKeyModal();
+                return;
+            }
+
             const count = document.getElementById('randomRecipeCount').value;
             
             // Gather all checked requirements
             const checkedBoxes = document.querySelectorAll('.req-checkbox:checked');
             const requirements = Array.from(checkedBoxes).map(cb => cb.value);
             
+            showStatus("Requesting AI recipes...", "loading");
+
             fetch('http://localhost:3000/api/generate-random', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-Gemini-Key': apiKey
                 },
                 body: JSON.stringify({ count: parseInt(count), requirements: requirements })
             })
-            .then(response => response.json())
+            .then(async response => {
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403 || response.status === 400) {
+                        localStorage.removeItem('gemini_api_key');
+                        openApiKeyModal();
+                        throw new Error("Invalid API Key. Please enter a valid Gemini API Key.");
+                    }
+                    const errText = await response.text();
+                    throw new Error(errText || "Failed to contact backend");
+                }
+                return response.json();
+            })
             .then(data => {
-                showStatus("Request sent to backend!", "success");
+                if (data.recipes && data.recipes.length > 0) {
+                    aiResults = data.recipes;
+                    aiIndex = 0;
+                    loadAiRecipe(0);
+                    showStatus("AI recipes generated! You can browse them below.", "success");
+                } else {
+                    showStatus("AI didn't return any recipes. Try again.", "error");
+                }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showStatus("Failed to contact backend", "error");
+                showStatus(error.message, "error");
             });
+        }
+
+        function loadAiRecipe(index) {
+            if (index < 0 || index >= aiResults.length) return;
+            
+            aiIndex = index;
+            const recipe = { ...aiResults[index] };
+            
+            // Per user request: use the recipe name as the URL for saving compatibility
+            recipe.url = recipe.name;
+            recipe.dateAdded = new Date().toISOString();
+
+            currentRecipe = recipe;
+            originalRecipe = { ...recipe };
+            editingSavedIndex = null;
+            
+            displayRecipe(recipe);
+
+            // Update Navigation UI
+            const nav = document.getElementById('aiNavControls');
+            if (aiResults.length > 1) {
+                nav.style.display = 'flex';
+                document.getElementById('aiRecipeIndex').textContent = `AI Recipe ${aiIndex + 1} of ${aiResults.length}`;
+            } else {
+                nav.style.display = 'none';
+            }
+        }
+
+        function nextAiRecipe() {
+            if (aiIndex < aiResults.length - 1) {
+                loadAiRecipe(aiIndex + 1);
+            }
+        }
+
+        function prevAiRecipe() {
+            if (aiIndex > 0) {
+                loadAiRecipe(aiIndex - 1);
+            }
         }
 
         function enterEditMode() {
@@ -968,8 +1080,15 @@
         }
 
         function displayRecipe(recipe) {
-
-
+            // Hide AI Nav if it's not being navigated (or if it's a regular recipe)
+            const nav = document.getElementById('aiNavControls');
+            if (nav) {
+                if (aiResults.length > 0 && recipe.name === aiResults[aiIndex].name) {
+                    nav.style.display = 'flex';
+                } else {
+                    nav.style.display = 'none';
+                }
+            }
 
             document.getElementById('recipeTitle').textContent =
                 recipe.name || 'Untitled Recipe';
